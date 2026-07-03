@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
-// TODO [Clean Code] Make this a CDI singleton?
+/** Utility class for converting between date/time strings and Java 8+ date/time types. */
 public class DateConverter {
   public static final String DATE_FORMAT = "M/d/yyyy";
   public static final String DATE_TIME_FORMAT = "M/d/yyyy h:m a";

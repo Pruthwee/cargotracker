@@ -1,7 +1,5 @@
 package org.eclipse.cargotracker.interfaces.booking.web;
 
-import static java.util.stream.Collectors.toList;
-
 import java.util.List;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.RequestScoped;
@@ -33,10 +31,10 @@ public class ListCargo {
   @PostConstruct
   public void init() {
     List<CargoRoute> cargos = bookingServiceFacade.listAllCargos();
-    notRoutedCargos = cargos.stream().filter(route -> !route.isRouted()).collect(toList());
+    notRoutedCargos = cargos.stream().filter(route -> !route.isRouted()).toList();
     routedUnclaimedCargos =
-        cargos.stream().filter(route -> route.isRouted() && !route.isClaimed()).collect(toList());
-    claimedCargos = cargos.stream().filter(CargoRoute::isClaimed).collect(toList());
+        cargos.stream().filter(route -> route.isRouted() && !route.isClaimed()).toList();
+    claimedCargos = cargos.stream().filter(CargoRoute::isClaimed).toList();
   }
 
   public List<CargoRoute> getNotRoutedCargos() {

@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.cargotracker.application.BookingService;
@@ -89,7 +88,7 @@ public class DefaultBookingServiceFacade implements BookingServiceFacade, Serial
     List<Cargo> cargos = cargoRepository.findAll();
     List<CargoRoute> routes;
 
-    routes = cargos.stream().map(cargoRouteDtoAssembler::toDto).collect(Collectors.toList());
+    routes = cargos.stream().map(cargoRouteDtoAssembler::toDto).toList();
 
     return routes;
   }
@@ -130,7 +129,7 @@ public class DefaultBookingServiceFacade implements BookingServiceFacade, Serial
         itineraries
             .stream()
             .map(itineraryCandidateDtoAssembler::toDto)
-            .collect(Collectors.toList());
+            .toList();
 
     return routeCandidates;
   }

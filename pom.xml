@@ -23,15 +23,16 @@
     <url>https://github.com/eclipse-ee4j/cargotracker/issues</url>
   </issueManagement>
   <properties>
-    <maven.compiler.release>11</maven.compiler.release>
+    <!-- Java version: Java 21 LTS -->
+    <maven.compiler.release>21</maven.compiler.release>
     <jakartaee.api.version>10.0.0</jakartaee.api.version>
-    <surefire.version>3.5.2</surefire.version>
-    <dependency.plugin.version>3.8.1</dependency.plugin.version>
     <cargo.plugin.version>1.10.18</cargo.plugin.version>
     <h2.version>2.3.232</h2.version>
     <payara.version>6.2025.3</payara.version>
     <payara.arquillian.adapter.version>3.1</payara.arquillian.adapter.version>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>    
+    <surefire.version>3.2.5</surefire.version>
+    <dependency.plugin.version>3.6.1</dependency.plugin.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -51,6 +52,21 @@
         <version>5.12.1</version>
         <type>pom</type>
         <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-lang3</artifactId>
+        <version>3.14.0</version>
+      </dependency>
+      <dependency>
+        <groupId>org.hamcrest</groupId>
+        <artifactId>hamcrest</artifactId>
+        <version>2.2</version>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-simple</artifactId>
+        <version>2.0.12</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -78,7 +94,7 @@
       <artifactId>jersey-server</artifactId>
       <version>3.1.10</version>
       <scope>provided</scope>
-    </dependency>    
+    </dependency>
     <!-- Test dependencies -->
     <dependency>
       <groupId>org.junit.jupiter</groupId>
@@ -124,6 +140,14 @@
   <build>
     <finalName>cargo-tracker</finalName>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.13.0</version>
+        <configuration>
+          <release>21</release>
+        </configuration>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>
@@ -178,7 +202,7 @@
           <artifactId>payara-client-ee9</artifactId>
           <version>${payara.arquillian.adapter.version}</version>
           <scope>test</scope>
-        </dependency>        
+        </dependency>
       </dependencies>
       <build>
         <plugins>
@@ -425,7 +449,7 @@
       </dependencies>
       <build>
         <plugins>
-        <!-- Enable liberty-maven plugin -->
+          <!-- Enable liberty-maven plugin -->
           <plugin>
             <groupId>io.openliberty.tools</groupId>
             <artifactId>liberty-maven-plugin</artifactId>

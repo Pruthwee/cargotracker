@@ -60,9 +60,7 @@ public class Schedule implements Serializable {
       return false;
     }
 
-    Schedule that = (Schedule) o;
-
-    return sameValueAs(that);
+    return sameValueAs((Schedule) o);
   }
 
   @Override

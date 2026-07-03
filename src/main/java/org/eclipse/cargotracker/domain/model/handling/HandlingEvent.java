@@ -176,24 +176,15 @@ public class HandlingEvent implements Serializable {
     return this.cargo;
   }
 
+  // Java 21 text block for multi-line string
   public String getSummary() {
-    StringBuilder builder =
-        new StringBuilder(location.getName())
-            .append("\n")
-            .append(completionTime)
-            .append("\n")
-            .append("Type: ")
-            .append(type)
-            .append("\n")
-            .append("Reg.: ")
-            .append(registrationTime)
-            .append("\n");
-
-    if (voyage != null) {
-      builder.append("Voyage: ").append(voyage.getVoyageNumber());
-    }
-
-    return builder.toString();
+    String base = """
+        %s
+        %s
+        Type: %s
+        Reg.: %s
+        """.formatted(location.getName(), completionTime, type, registrationTime);
+    return voyage != null ? base + "Voyage: " + voyage.getVoyageNumber() : base;
   }
 
   @Override
@@ -202,13 +193,8 @@ public class HandlingEvent implements Serializable {
       return true;
     }
 
-    if (o == null || !(o instanceof HandlingEvent)) {
-      return false;
-    }
-
-    HandlingEvent event = (HandlingEvent) o;
-
-    return sameEventAs(event);
+    // Java 21 pattern matching instanceof
+    return o instanceof HandlingEvent other && sameEventAs(other);
   }
 
   private boolean sameEventAs(HandlingEvent other) {

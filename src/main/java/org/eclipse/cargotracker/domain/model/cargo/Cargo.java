@@ -168,12 +168,12 @@ public class Cargo implements Serializable {
     if (this == object) {
       return true;
     }
+
     if (object == null || !(object instanceof Cargo)) {
       return false;
     }
 
-    Cargo other = (Cargo) object;
-    return sameIdentityAs(other);
+    return sameIdentityAs((Cargo) object);
   }
 
   private boolean sameIdentityAs(Cargo other) {

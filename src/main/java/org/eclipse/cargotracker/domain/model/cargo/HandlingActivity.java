@@ -94,16 +94,7 @@ public class HandlingActivity implements Serializable {
       return true;
     }
 
-    if (obj == null) {
-      return false;
-    }
-
-    if (!(obj instanceof HandlingActivity)) {
-      return false;
-    }
-
-    HandlingActivity other = (HandlingActivity) obj;
-
+    return sameValueAs((HandlingActivity) obj);
     return sameValueAs(other);
   }
 

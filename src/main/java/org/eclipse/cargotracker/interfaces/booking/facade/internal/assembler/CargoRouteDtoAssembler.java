@@ -1,7 +1,5 @@
 package org.eclipse.cargotracker.interfaces.booking.facade.internal.assembler;
 
-import static java.util.stream.Collectors.toList;
-
 import java.util.List;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -30,7 +28,7 @@ public class CargoRouteDtoAssembler {
                         locationDtoAssembler.toDto(leg.getUnloadLocation()),
                         leg.getLoadTime(),
                         leg.getUnloadTime()))
-            .collect(toList());
+            .toList();
 
     return new CargoRoute(
         cargo.getTrackingId().getIdString(),

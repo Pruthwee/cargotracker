@@ -106,16 +106,7 @@ public class Leg implements Serializable {
       return true;
     }
 
-    if (o == null || !(o instanceof Leg)) {
-      return false;
-    }
-
-    Leg leg = (Leg) o;
-
-    return sameValueAs(leg);
-  }
-
-  @Override
+    return sameValueAs((Leg) o);
   public int hashCode() {
     return new HashCodeBuilder()
         .append(voyage)

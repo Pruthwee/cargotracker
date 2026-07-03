@@ -87,16 +87,7 @@ public class RouteSpecification extends AbstractSpecification<Itinerary> impleme
       return true;
     }
 
-    if (o == null || !(o instanceof RouteSpecification)) {
-      return false;
-    }
-
-    RouteSpecification that = (RouteSpecification) o;
-
-    return sameValueAs(that);
-  }
-
-  @Override
+    return sameValueAs((RouteSpecification) o);
   public int hashCode() {
     return new HashCodeBuilder()
         .append(this.origin)

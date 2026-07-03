@@ -33,16 +33,7 @@ public class TrackingId implements Serializable {
       return true;
     }
 
-    if (o == null || !(o instanceof TrackingId)) {
-      return false;
-    }
-
-    TrackingId other = (TrackingId) o;
-
-    return sameValueAs(other);
-  }
-
-  @Override
+    return sameValueAs((TrackingId) o);
   public int hashCode() {
     return id.hashCode();
   }

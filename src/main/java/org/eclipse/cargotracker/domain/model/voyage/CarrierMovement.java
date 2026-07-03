@@ -93,9 +93,7 @@ public class CarrierMovement implements Serializable {
       return false;
     }
 
-    CarrierMovement that = (CarrierMovement) o;
-
-    return sameValueAs(that);
+    return sameValueAs((CarrierMovement) o);
   }
 
   @Override

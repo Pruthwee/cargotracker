@@ -39,9 +39,7 @@ public class VoyageNumber implements Serializable {
       return false;
     }
 
-    VoyageNumber other = (VoyageNumber) o;
-
-    return sameValueAs(other);
+    return sameValueAs((VoyageNumber) o);
   }
 
   @Override

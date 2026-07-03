@@ -2,7 +2,6 @@ package org.eclipse.cargotracker.domain.model.handling;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -11,8 +10,7 @@ import org.apache.commons.lang3.Validate;
 public class HandlingHistory {
 
   // Null object pattern.
-  public static final HandlingHistory EMPTY =
-      new HandlingHistory(Collections.<HandlingEvent>emptyList());
+  public static final HandlingHistory EMPTY = new HandlingHistory(List.of());
   private static final Comparator<HandlingEvent> BY_COMPLETION_TIME_COMPARATOR =
       Comparator.comparing(HandlingEvent::getCompletionTime);
 
@@ -36,7 +34,7 @@ public class HandlingHistory {
     List<HandlingEvent> ordered = new ArrayList<>(new HashSet<>(handlingEvents));
     ordered.sort(BY_COMPLETION_TIME_COMPARATOR);
 
-    return Collections.unmodifiableList(ordered);
+    return List.copyOf(ordered);
   }
 
   /** @return Most recently completed event, or null if the delivery history is empty. */
@@ -60,13 +58,7 @@ public class HandlingHistory {
       return true;
     }
 
-    if (o == null || !(o instanceof HandlingHistory)) {
-      return false;
-    }
-
-    HandlingHistory other = (HandlingHistory) o;
-
-    return sameValueAs(other);
+    return o instanceof HandlingHistory other && sameValueAs(other);
   }
 
   @Override

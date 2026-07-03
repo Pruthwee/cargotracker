@@ -73,9 +73,7 @@ public class Voyage implements Serializable {
       return false;
     }
 
-    Voyage that = (Voyage) o;
-
-    return sameIdentityAs(that);
+    return sameIdentityAs((Voyage) o);
   }
 
   public boolean sameIdentityAs(Voyage other) {

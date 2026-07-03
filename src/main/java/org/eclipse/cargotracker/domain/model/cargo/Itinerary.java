@@ -145,16 +145,7 @@ public class Itinerary implements Serializable {
       return true;
     }
 
-    if (o == null || !(o instanceof Itinerary)) {
-      return false;
-    }
-
-    Itinerary itinerary = (Itinerary) o;
-
-    return sameValueAs(itinerary);
-  }
-
-  @Override
+    return sameValueAs((Itinerary) o);
   public int hashCode() {
     return legs.hashCode();
   }

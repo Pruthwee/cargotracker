@@ -2,7 +2,6 @@ package org.eclipse.cargotracker.interfaces.booking.facade.internal.assembler;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.eclipse.cargotracker.domain.model.location.Location;
 
@@ -23,7 +22,7 @@ public class LocationDtoAssembler {
             .sorted(
                 Comparator.comparing(
                     org.eclipse.cargotracker.interfaces.booking.facade.dto.Location::getUnLocode))
-            .collect(Collectors.toList());
+            .toList();
     return dtoList;
   }
 }

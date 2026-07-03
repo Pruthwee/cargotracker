@@ -61,7 +61,7 @@ public class Location implements Serializable {
 
   /**
    * @param object to compare
-   * @return Since this is an entiy this will be true iff UN locodes are equal.
+   * @return Since this is an entity this will be true iff UN locodes are equal.
    */
   @Override
   public boolean equals(Object object) {
@@ -73,13 +73,8 @@ public class Location implements Serializable {
       return true;
     }
 
-    if (!(object instanceof Location)) {
-      return false;
-    }
-
-    Location other = (Location) object;
-
-    return sameIdentityAs(other);
+    // Java 21 pattern matching instanceof
+    return object instanceof Location other && sameIdentityAs(other);
   }
 
   public boolean sameIdentityAs(Location other) {

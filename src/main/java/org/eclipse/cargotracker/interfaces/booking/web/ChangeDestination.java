@@ -2,7 +2,6 @@ package org.eclipse.cargotracker.interfaces.booking.web;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.stream.Collectors;
 import jakarta.faces.view.ViewScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -59,7 +58,7 @@ public class ChangeDestination implements Serializable {
                 location ->
                     location.getUnLocode().equalsIgnoreCase(cargo.getOriginCode())
                         || location.getUnLocode().equalsIgnoreCase(cargo.getFinalDestinationCode()))
-            .collect(Collectors.toList());
+            .toList();
 
     locations.removeAll(destinationsToRemove);
 

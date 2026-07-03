@@ -208,23 +208,18 @@ public class Delivery implements Serializable {
     this.calculatedAt = calculatedAt;
   }
 
+  // Java 21 pattern matching switch expression
   private TransportStatus calculateTransportStatus() {
     if (lastEvent == null) {
       return NOT_RECEIVED;
     }
 
-    switch (lastEvent.getType()) {
-      case LOAD:
-        return ONBOARD_CARRIER;
-      case UNLOAD:
-      case RECEIVE:
-      case CUSTOMS:
-        return IN_PORT;
-      case CLAIM:
-        return CLAIMED;
-      default:
-        return UNKNOWN;
-    }
+    return switch (lastEvent.getType()) {
+      case LOAD -> ONBOARD_CARRIER;
+      case UNLOAD, RECEIVE, CUSTOMS -> IN_PORT;
+      case CLAIM -> CLAIMED;
+      default -> UNKNOWN;
+    };
   }
 
   private Location calculateLastKnownLocation() {
@@ -355,13 +350,9 @@ public class Delivery implements Serializable {
     if (this == o) {
       return true;
     }
-    if (o == null || !(o instanceof Delivery)) {
-      return false;
-    }
 
-    Delivery other = (Delivery) o;
-
-    return sameValueAs(other);
+    // Java 21 pattern matching instanceof
+    return o instanceof Delivery other && sameValueAs(other);
   }
 
   @Override

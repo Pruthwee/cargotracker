@@ -2,7 +2,6 @@ package org.eclipse.cargotracker.interfaces.booking.facade.internal.assembler;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.cargotracker.application.util.DateConverter;
@@ -19,13 +18,11 @@ public class CargoStatusDtoAssembler {
   @Inject private TrackingEventsDtoAssembler assembler;
 
   public CargoStatus toDto(Cargo cargo, List<HandlingEvent> handlingEvents) {
-    List<TrackingEvents> trackingEvents;
-
-    trackingEvents =
+    List<TrackingEvents> trackingEvents =
         handlingEvents
             .stream()
             .map(handlingEvent -> assembler.toDto(cargo, handlingEvent))
-            .collect(Collectors.toList());
+            .toList();
 
     return new CargoStatus(
         cargo.getTrackingId().getIdString(),
