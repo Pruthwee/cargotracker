@@ -15,7 +15,7 @@ import org.eclipse.cargotracker.domain.model.location.SampleLocations;
 import org.eclipse.cargotracker.domain.model.voyage.SampleVoyages;
 
 /** Loads sample data for demo. */
-@Singleton
+@ApplicationScoped
 @Startup
 public class BookingServiceTestDataGenerator {
 
