@@ -3,6 +3,7 @@ package org.eclipse.cargotracker.interfaces.booking.facade.internal.assembler;
 import static java.util.stream.Collectors.toList;
 
 import java.util.List;
+// Blocker-11: cz-java-0064 - CDI @ApplicationScoped used (not EJB @Singleton) for distributed container compatibility
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.cargotracker.domain.model.cargo.Cargo;

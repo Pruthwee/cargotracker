@@ -14,6 +14,7 @@ import org.eclipse.cargotracker.domain.model.voyage.Voyage;
 import org.eclipse.cargotracker.domain.model.voyage.VoyageNumber;
 import org.eclipse.cargotracker.domain.model.voyage.VoyageRepository;
 
+// Blocker-2: cz-java-0064 - Replaced EJB @Singleton with CDI @ApplicationScoped for distributed container compatibility
 @ApplicationScoped
 public class HandlingEventFactory implements Serializable {
 

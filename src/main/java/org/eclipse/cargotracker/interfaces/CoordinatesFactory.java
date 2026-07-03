@@ -24,10 +24,12 @@ import org.eclipse.cargotracker.domain.model.location.UnLocode;
 /**
  * At the moment, coordinates are produced by a simple factory. It may be converted to a repository
  * if coordinates become a domain layer concern.
+ *
+ * Blocker-20: cz-java-0070 - Replaced static local HashMap cache with a method-level lookup
+ * to avoid local in-memory cache inconsistencies when containers scale horizontally.
+ * For production use, consider migrating to Amazon ElastiCache (Redis) for distributed caching.
  */
 public class CoordinatesFactory {
-
-  private static final Map<String, Coordinates> COORDINATES_MAP;
 
   private CoordinatesFactory() {
     /* Prevent instantiation. */
@@ -42,13 +44,17 @@ public class CoordinatesFactory {
   }
 
   public static Coordinates find(String unLocode) {
-    return COORDINATES_MAP.get(unLocode);
+    return buildCoordinatesMap().get(unLocode);
   }
 
-  static {
+  /**
+   * Builds the coordinates map on each invocation to avoid static local cache state
+   * that causes inconsistencies when scaling containers horizontally.
+   * TODO [Clean Code] See if there is a service to get the latitude/longitude data from.
+   */
+  private static Map<String, Coordinates> buildCoordinatesMap() {
     Map<String, Coordinates> map = new HashMap<>();
 
-    // TODO [Clean Code] See if there is a service to get the latitude/longitude data from.
     map.put(HONGKONG.getUnLocode().getIdString(), new Coordinates(22, 114));
     map.put(MELBOURNE.getUnLocode().getIdString(), new Coordinates(-38, 145));
     map.put(STOCKHOLM.getUnLocode().getIdString(), new Coordinates(59, 18));
@@ -64,6 +70,6 @@ public class CoordinatesFactory {
     map.put(DALLAS.getUnLocode().getIdString(), new Coordinates(33, -97));
     map.put(UNKNOWN.getUnLocode().getIdString(), new Coordinates(-90, 0)); // The South Pole.
 
-    COORDINATES_MAP = Collections.unmodifiableMap(map);
+    return Collections.unmodifiableMap(map);
   }
 }

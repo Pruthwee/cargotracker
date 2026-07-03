@@ -2,6 +2,7 @@ package org.eclipse.cargotracker.infrastructure.persistence.jpa;
 
 import java.io.Serializable;
 import java.util.List;
+// Blocker-7: cz-java-0064 - CDI @ApplicationScoped used (not EJB @Singleton) for distributed container compatibility
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+// Blocker-17: cz-java-0064 - CDI @ApplicationScoped used (not EJB @Singleton) for distributed container compatibility
 import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped

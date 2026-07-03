@@ -2,6 +2,7 @@ package org.eclipse.cargotracker.infrastructure.logging;
 
 import java.io.Serializable;
 import java.util.logging.Logger;
+// Blocker-3: cz-java-0064 - CDI @ApplicationScoped used (not EJB @Singleton) for distributed container compatibility
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Produces;
 import jakarta.enterprise.inject.spi.InjectionPoint;

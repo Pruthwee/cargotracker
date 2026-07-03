@@ -1,5 +1,6 @@
 package org.eclipse.cargotracker.interfaces.booking.facade.internal.assembler;
 
+// Blocker-15: cz-java-0064 - CDI @ApplicationScoped used (not EJB @Singleton) for distributed container compatibility
 import jakarta.enterprise.context.ApplicationScoped;
 import org.eclipse.cargotracker.application.util.DateConverter;
 import org.eclipse.cargotracker.domain.model.cargo.Cargo;

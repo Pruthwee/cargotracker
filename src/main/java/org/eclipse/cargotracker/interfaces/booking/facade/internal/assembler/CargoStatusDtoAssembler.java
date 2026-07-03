@@ -3,6 +3,7 @@ package org.eclipse.cargotracker.interfaces.booking.facade.internal.assembler;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
+// Blocker-12: cz-java-0064 - CDI @ApplicationScoped used (not EJB @Singleton) for distributed container compatibility
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.cargotracker.application.util.DateConverter;

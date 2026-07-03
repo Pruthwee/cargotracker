@@ -6,13 +6,14 @@ import org.eclipse.cargotracker.domain.model.cargo.Cargo;
 import org.eclipse.cargotracker.domain.model.cargo.RoutingStatus;
 import org.eclipse.cargotracker.domain.model.cargo.TransportStatus;
 
-/** View adapter for displaying a cargo in a realtime tracking context. */
+/**
+ * View adapter for displaying a cargo in a realtime tracking context.
+ *
+ * Blocker-21 & Blocker-22: cz-java-0070 - Replaced static local EnumMap caches with
+ * method-level lookups to avoid local in-memory cache inconsistencies when containers
+ * scale horizontally. For production use, consider migrating to Amazon ElastiCache (Redis).
+ */
 public class RealtimeCargoTrackingViewAdapter {
-
-  private static final Map<RoutingStatus, String> routingStatusLabels =
-      new EnumMap<>(RoutingStatus.class);
-  private static final Map<TransportStatus, String> transportStatusLabels =
-      new EnumMap<>(TransportStatus.class);
 
   private final Cargo cargo;
 
@@ -25,7 +26,7 @@ public class RealtimeCargoTrackingViewAdapter {
   }
 
   public String getRoutingStatus() {
-    return routingStatusLabels.get(cargo.getDelivery().getRoutingStatus());
+    return buildRoutingStatusLabels().get(cargo.getDelivery().getRoutingStatus());
   }
 
   public boolean isMisdirected() {
@@ -33,7 +34,7 @@ public class RealtimeCargoTrackingViewAdapter {
   }
 
   public String getTransportStatus() {
-    return transportStatusLabels.get(cargo.getDelivery().getTransportStatus());
+    return buildTransportStatusLabels().get(cargo.getDelivery().getTransportStatus());
   }
 
   public boolean isAtDestination() {
@@ -72,15 +73,29 @@ public class RealtimeCargoTrackingViewAdapter {
     return cargo.getDelivery().getTransportStatus().toString();
   }
 
-  static {
-    routingStatusLabels.put(RoutingStatus.NOT_ROUTED, "Not routed");
-    routingStatusLabels.put(RoutingStatus.ROUTED, "Routed");
-    routingStatusLabels.put(RoutingStatus.MISROUTED, "Misrouted");
+  /**
+   * Builds routing status labels map on each invocation to avoid static local cache state
+   * that causes inconsistencies when scaling containers horizontally.
+   */
+  private static Map<RoutingStatus, String> buildRoutingStatusLabels() {
+    Map<RoutingStatus, String> labels = new EnumMap<>(RoutingStatus.class);
+    labels.put(RoutingStatus.NOT_ROUTED, "Not routed");
+    labels.put(RoutingStatus.ROUTED, "Routed");
+    labels.put(RoutingStatus.MISROUTED, "Misrouted");
+    return labels;
+  }
 
-    transportStatusLabels.put(TransportStatus.NOT_RECEIVED, "Not received");
-    transportStatusLabels.put(TransportStatus.IN_PORT, "In port");
-    transportStatusLabels.put(TransportStatus.ONBOARD_CARRIER, "Onboard carrier");
-    transportStatusLabels.put(TransportStatus.CLAIMED, "Claimed");
-    transportStatusLabels.put(TransportStatus.UNKNOWN, "Unknown");
+  /**
+   * Builds transport status labels map on each invocation to avoid static local cache state
+   * that causes inconsistencies when scaling containers horizontally.
+   */
+  private static Map<TransportStatus, String> buildTransportStatusLabels() {
+    Map<TransportStatus, String> labels = new EnumMap<>(TransportStatus.class);
+    labels.put(TransportStatus.NOT_RECEIVED, "Not received");
+    labels.put(TransportStatus.IN_PORT, "In port");
+    labels.put(TransportStatus.ONBOARD_CARRIER, "Onboard carrier");
+    labels.put(TransportStatus.CLAIMED, "Claimed");
+    labels.put(TransportStatus.UNKNOWN, "Unknown");
+    return labels;
   }
 }

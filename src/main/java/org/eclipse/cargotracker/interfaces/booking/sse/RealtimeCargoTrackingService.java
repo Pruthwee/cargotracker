@@ -4,7 +4,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
-import jakarta.ejb.Singleton;
+// Blocker-16: cz-java-0064 - Replaced EJB @Singleton with CDI @ApplicationScoped for distributed container compatibility
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.ObservesAsync;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
@@ -21,7 +22,7 @@ import org.eclipse.cargotracker.domain.model.cargo.CargoRepository;
 import org.eclipse.cargotracker.infrastructure.events.cdi.CargoUpdated;
 
 /** Sever-sent events service for tracking all cargo in real time. */
-@Singleton
+@ApplicationScoped
 @Path("/cargo")
 public class RealtimeCargoTrackingService {
   @Inject private Logger logger;
