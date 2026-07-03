@@ -3,7 +3,9 @@ package org.eclipse.cargotracker.domain.model.handling;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.LocalDate;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import org.eclipse.cargotracker.domain.model.cargo.Cargo;
@@ -25,42 +27,42 @@ public class HandlingHistoryTest {
               LocalDate.now().minusYears(1).plusMonths(4).plusDays(1)));
   Voyage voyage =
       new Voyage.Builder(new VoyageNumber("X25"), SampleLocations.HONGKONG)
-          .addMovement(SampleLocations.SHANGHAI, LocalDateTime.now(), LocalDateTime.now())
-          .addMovement(SampleLocations.DALLAS, LocalDateTime.now(), LocalDateTime.now())
+          .addMovement(SampleLocations.SHANGHAI, LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC), LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC))
+          .addMovement(SampleLocations.DALLAS, LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC), LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC))
           .build();
   HandlingEvent event1 =
       new HandlingEvent(
           cargo,
-          LocalDateTime.now()
+          LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC)
               .minusYears(1)
               .plusMonths(3)
               .plusDays(5)
               .truncatedTo(ChronoUnit.SECONDS),
-          LocalDateTime.now().plusDays(100),
+          LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC).plusDays(100),
           HandlingEvent.Type.LOAD,
           SampleLocations.SHANGHAI,
           voyage);
   HandlingEvent event1duplicate =
       new HandlingEvent(
           cargo,
-          LocalDateTime.now()
+          LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC)
               .minusYears(1)
               .plusMonths(3)
               .plusDays(5)
               .truncatedTo(ChronoUnit.SECONDS),
-          LocalDateTime.now().plusDays(200),
+          LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC).plusDays(200),
           HandlingEvent.Type.LOAD,
           SampleLocations.SHANGHAI,
           voyage);
   HandlingEvent event2 =
       new HandlingEvent(
           cargo,
-          LocalDateTime.now()
+          LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC)
               .minusYears(1)
               .plusMonths(3)
               .plusDays(10)
               .truncatedTo(ChronoUnit.SECONDS),
-          LocalDateTime.now().plusDays(150),
+          LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC).plusDays(150),
           HandlingEvent.Type.UNLOAD,
           SampleLocations.DALLAS,
           voyage);

@@ -5,7 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.time.LocalDate;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -19,13 +21,13 @@ public class ItineraryTest {
 
   private Voyage voyage =
       new Voyage.Builder(new VoyageNumber("0123"), SampleLocations.SHANGHAI)
-          .addMovement(SampleLocations.ROTTERDAM, LocalDateTime.now(), LocalDateTime.now())
-          .addMovement(SampleLocations.GOTHENBURG, LocalDateTime.now(), LocalDateTime.now())
+          .addMovement(SampleLocations.ROTTERDAM, LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC), LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC))
+          .addMovement(SampleLocations.GOTHENBURG, LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC), LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC))
           .build();
   private Voyage wrongVoyage =
       new Voyage.Builder(new VoyageNumber("666"), SampleLocations.NEWYORK)
-          .addMovement(SampleLocations.STOCKHOLM, LocalDateTime.now(), LocalDateTime.now())
-          .addMovement(SampleLocations.HELSINKI, LocalDateTime.now(), LocalDateTime.now())
+          .addMovement(SampleLocations.STOCKHOLM, LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC), LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC))
+          .addMovement(SampleLocations.HELSINKI, LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC), LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC))
           .build();
 
   @Test
@@ -43,21 +45,21 @@ public class ItineraryTest {
                     voyage,
                     SampleLocations.SHANGHAI,
                     SampleLocations.ROTTERDAM,
-                    LocalDateTime.now(),
-                    LocalDateTime.now()),
+                    LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
+                    LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC)),
                 new Leg(
                     voyage,
                     SampleLocations.ROTTERDAM,
                     SampleLocations.GOTHENBURG,
-                    LocalDateTime.now(),
-                    LocalDateTime.now())));
+                    LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
+                    LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC))));
 
     // Happy path
     HandlingEvent event =
         new HandlingEvent(
             cargo,
-            LocalDateTime.now(),
-            LocalDateTime.now(),
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
             HandlingEvent.Type.RECEIVE,
             SampleLocations.SHANGHAI);
     assertTrue(itinerary.isExpected(event));
@@ -65,8 +67,8 @@ public class ItineraryTest {
     event =
         new HandlingEvent(
             cargo,
-            LocalDateTime.now(),
-            LocalDateTime.now(),
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
             HandlingEvent.Type.LOAD,
             SampleLocations.SHANGHAI,
             voyage);
@@ -75,8 +77,8 @@ public class ItineraryTest {
     event =
         new HandlingEvent(
             cargo,
-            LocalDateTime.now(),
-            LocalDateTime.now(),
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
             HandlingEvent.Type.UNLOAD,
             SampleLocations.ROTTERDAM,
             voyage);
@@ -85,8 +87,8 @@ public class ItineraryTest {
     event =
         new HandlingEvent(
             cargo,
-            LocalDateTime.now(),
-            LocalDateTime.now(),
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
             HandlingEvent.Type.LOAD,
             SampleLocations.ROTTERDAM,
             voyage);
@@ -95,8 +97,8 @@ public class ItineraryTest {
     event =
         new HandlingEvent(
             cargo,
-            LocalDateTime.now(),
-            LocalDateTime.now(),
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
             HandlingEvent.Type.UNLOAD,
             SampleLocations.GOTHENBURG,
             voyage);
@@ -105,8 +107,8 @@ public class ItineraryTest {
     event =
         new HandlingEvent(
             cargo,
-            LocalDateTime.now(),
-            LocalDateTime.now(),
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
             HandlingEvent.Type.CLAIM,
             SampleLocations.GOTHENBURG);
     assertTrue(itinerary.isExpected(event));
@@ -115,8 +117,8 @@ public class ItineraryTest {
     event =
         new HandlingEvent(
             cargo,
-            LocalDateTime.now(),
-            LocalDateTime.now(),
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
             HandlingEvent.Type.CUSTOMS,
             SampleLocations.GOTHENBURG);
     assertTrue(itinerary.isExpected(event));
@@ -125,8 +127,8 @@ public class ItineraryTest {
     event =
         new HandlingEvent(
             cargo,
-            LocalDateTime.now(),
-            LocalDateTime.now(),
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
             HandlingEvent.Type.RECEIVE,
             SampleLocations.HANGZOU);
     assertFalse(itinerary.isExpected(event));
@@ -135,8 +137,8 @@ public class ItineraryTest {
     event =
         new HandlingEvent(
             cargo,
-            LocalDateTime.now(),
-            LocalDateTime.now(),
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
             HandlingEvent.Type.LOAD,
             SampleLocations.ROTTERDAM,
             wrongVoyage);
@@ -146,8 +148,8 @@ public class ItineraryTest {
     event =
         new HandlingEvent(
             cargo,
-            LocalDateTime.now(),
-            LocalDateTime.now(),
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
             HandlingEvent.Type.UNLOAD,
             SampleLocations.HELSINKI,
             wrongVoyage);
@@ -156,8 +158,8 @@ public class ItineraryTest {
     event =
         new HandlingEvent(
             cargo,
-            LocalDateTime.now(),
-            LocalDateTime.now(),
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
             HandlingEvent.Type.CLAIM,
             SampleLocations.ROTTERDAM);
     assertFalse(itinerary.isExpected(event));
@@ -176,27 +178,27 @@ public class ItineraryTest {
                     voyage,
                     SampleLocations.SHANGHAI,
                     SampleLocations.ROTTERDAM,
-                    LocalDateTime.now(),
-                    LocalDateTime.now()),
+                    LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
+                    LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC)),
             new Leg(
                     voyage,
                     SampleLocations.ROTTERDAM,
                     SampleLocations.GOTHENBURG,
-                    LocalDateTime.now(),
-                    LocalDateTime.now())));
+                    LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
+                    LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC))));
 
     HandlingEvent receiveEvent = new HandlingEvent(
             cargo,
-            LocalDateTime.now(),
-            LocalDateTime.now(),
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
             HandlingEvent.Type.RECEIVE,
             SampleLocations.SHANGHAI);
     assertTrue(itinerary.isExpected(receiveEvent));
 
     HandlingEvent unexpectedEvent = new HandlingEvent(
             cargo,
-            LocalDateTime.now(),
-            LocalDateTime.now(),
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
             HandlingEvent.Type.UNLOAD,
             SampleLocations.ROTTERDAM,
             wrongVoyage);
@@ -204,8 +206,8 @@ public class ItineraryTest {
 
     HandlingEvent claimEvent = new HandlingEvent(
             cargo,
-            LocalDateTime.now(),
-            LocalDateTime.now(),
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
             HandlingEvent.Type.CLAIM,
             SampleLocations.GOTHENBURG);
     assertTrue(itinerary.isExpected(claimEvent));

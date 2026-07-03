@@ -1,6 +1,8 @@
 package org.eclipse.cargotracker.interfaces.handling.rest;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -20,6 +22,7 @@ import org.eclipse.cargotracker.interfaces.handling.HandlingEventRegistrationAtt
  * This REST end-point implementation performs basic validation and parsing of incoming data, and in
  * case of a valid registration attempt, sends an asynchronous message with the information to the
  * handling event registration system for proper registration.
+ * Uses UTC-based time for cloud-native time handling across distributed environments.
  */
 @Stateless
 @Path("/handling")
@@ -44,9 +47,11 @@ public class HandlingReportService {
 
     TrackingId trackingId = new TrackingId(handlingReport.getTrackingId());
 
+    // Use UTC-based Instant for consistent time handling across distributed cloud instances
     HandlingEventRegistrationAttempt attempt =
         new HandlingEventRegistrationAttempt(
-            LocalDateTime.now(), completionTime, trackingId, voyageNumber, type, unLocode);
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
+            completionTime, trackingId, voyageNumber, type, unLocode);
 
     applicationEvents.receivedHandlingEventRegistrationAttempt(attempt);
   }

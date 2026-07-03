@@ -6,9 +6,19 @@ import org.eclipse.cargotracker.domain.model.cargo.Cargo;
 import org.eclipse.cargotracker.domain.model.cargo.RoutingStatus;
 import org.eclipse.cargotracker.domain.model.cargo.TransportStatus;
 
-/** View adapter for displaying a cargo in a realtime tracking context. */
+/**
+ * View adapter for displaying a cargo in a realtime tracking context.
+ *
+ * <p>NOTE: For cloud-native deployments with multiple instances, consider migrating the
+ * static label maps to Amazon ElastiCache for Redis with appropriate TTL policies
+ * to ensure consistent data across distributed application instances. The current
+ * implementation uses immutable static maps which are safe for read-only access.
+ */
 public class RealtimeCargoTrackingViewAdapter {
 
+  // These maps are effectively immutable after static initialization.
+  // For mutable caching scenarios in cloud environments, use Amazon ElastiCache for Redis
+  // with TTL policies to prevent stale data and ensure cross-instance consistency.
   private static final Map<RoutingStatus, String> routingStatusLabels =
       new EnumMap<>(RoutingStatus.class);
   private static final Map<TransportStatus, String> transportStatusLabels =

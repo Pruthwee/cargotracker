@@ -1,7 +1,9 @@
 package org.eclipse.cargotracker.domain.model.voyage;
 
 import java.lang.reflect.Field;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -10,8 +12,17 @@ import java.util.Map;
 import org.eclipse.cargotracker.domain.model.location.Location;
 import org.eclipse.cargotracker.domain.model.location.SampleLocations;
 
-/** Sample carrier movements, for demo/test purposes. */
+/**
+ * Sample carrier movements, for demo/test purposes.
+ * Uses UTC-based time (via Instant and ZoneOffset.UTC) for cloud-native time handling
+ * across distributed environments.
+ */
 public class SampleVoyages {
+
+  // Helper method to get current UTC time as LocalDateTime for cloud-native consistency
+  private static LocalDateTime utcNow() {
+    return LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC);
+  }
 
   public static final Voyage CM001 =
       createVoyage("CM001", SampleLocations.STOCKHOLM, SampleLocations.HAMBURG);
@@ -29,61 +40,61 @@ public class SampleVoyages {
       new Voyage.Builder(new VoyageNumber("V100"), SampleLocations.HONGKONG)
           .addMovement(
               SampleLocations.TOKYO,
-              LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(3).plusHours(6),
-              LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(5).plusHours(18))
+              utcNow().minusYears(1).plusMonths(3).plusDays(3).plusHours(6),
+              utcNow().minusYears(1).plusMonths(3).plusDays(5).plusHours(18))
           .addMovement(
               SampleLocations.NEWYORK,
-              LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(6).plusHours(11),
-              LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(9).plusHours(11))
+              utcNow().minusYears(1).plusMonths(3).plusDays(6).plusHours(11),
+              utcNow().minusYears(1).plusMonths(3).plusDays(9).plusHours(11))
           .build();
   public static final Voyage v200 =
       new Voyage.Builder(new VoyageNumber("V200"), SampleLocations.TOKYO)
           .addMovement(
               SampleLocations.NEWYORK,
-              LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(6).plusHours(14),
-              LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(8).plusHours(7))
+              utcNow().minusYears(1).plusMonths(3).plusDays(6).plusHours(14),
+              utcNow().minusYears(1).plusMonths(3).plusDays(8).plusHours(7))
           .addMovement(
               SampleLocations.CHICAGO,
-              LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(10).plusHours(21),
-              LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(14).plusHours(2))
+              utcNow().minusYears(1).plusMonths(3).plusDays(10).plusHours(21),
+              utcNow().minusYears(1).plusMonths(3).plusDays(14).plusHours(2))
           .addMovement(
               SampleLocations.STOCKHOLM,
-              LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(14).plusHours(1),
-              LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(16).plusHours(23))
+              utcNow().minusYears(1).plusMonths(3).plusDays(14).plusHours(1),
+              utcNow().minusYears(1).plusMonths(3).plusDays(16).plusHours(23))
           .build();
   public static final Voyage v300 =
       new Voyage.Builder(new VoyageNumber("V300"), SampleLocations.TOKYO)
           .addMovement(
               SampleLocations.ROTTERDAM,
-              LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(8).plusHours(8),
-              LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(11).plusHours(16))
+              utcNow().minusYears(1).plusMonths(3).plusDays(8).plusHours(8),
+              utcNow().minusYears(1).plusMonths(3).plusDays(11).plusHours(16))
           .addMovement(
               SampleLocations.HAMBURG,
-              LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(11).plusHours(4),
-              LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(12).plusHours(17))
+              utcNow().minusYears(1).plusMonths(3).plusDays(11).plusHours(4),
+              utcNow().minusYears(1).plusMonths(3).plusDays(12).plusHours(17))
           .addMovement(
               SampleLocations.MELBOURNE,
-              LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(14).plusHours(9),
-              LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(18).plusHours(10))
+              utcNow().minusYears(1).plusMonths(3).plusDays(14).plusHours(9),
+              utcNow().minusYears(1).plusMonths(3).plusDays(18).plusHours(10))
           .addMovement(
               SampleLocations.TOKYO,
-              LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(19).plusHours(17),
-              LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(21).plusHours(4))
+              utcNow().minusYears(1).plusMonths(3).plusDays(19).plusHours(17),
+              utcNow().minusYears(1).plusMonths(3).plusDays(21).plusHours(4))
           .build();
   public static final Voyage v400 =
       new Voyage.Builder(new VoyageNumber("V400"), SampleLocations.HAMBURG)
           .addMovement(
               SampleLocations.STOCKHOLM,
-              LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(14).plusHours(9),
-              LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(15).plusHours(18))
+              utcNow().minusYears(1).plusMonths(3).plusDays(14).plusHours(9),
+              utcNow().minusYears(1).plusMonths(3).plusDays(15).plusHours(18))
           .addMovement(
               SampleLocations.HELSINKI,
-              LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(15).plusHours(11),
-              LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(16).plusHours(16))
+              utcNow().minusYears(1).plusMonths(3).plusDays(15).plusHours(11),
+              utcNow().minusYears(1).plusMonths(3).plusDays(16).plusHours(16))
           .addMovement(
               SampleLocations.HAMBURG,
-              LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(20).plusHours(18),
-              LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(22).plusHours(9))
+              utcNow().minusYears(1).plusMonths(3).plusDays(20).plusHours(18),
+              utcNow().minusYears(1).plusMonths(3).plusDays(22).plusHours(9))
           .build();
   /**
    * Voyage number 0100S (by ship)
@@ -94,8 +105,8 @@ public class SampleVoyages {
       new Voyage.Builder(new VoyageNumber("0100S"), SampleLocations.HONGKONG)
           .addMovement(
               SampleLocations.HANGZOU,
-              LocalDateTime.now().minusYears(1).plusMonths(10).plusDays(1).plusHours(12),
-              LocalDateTime.now()
+              utcNow().minusYears(1).plusMonths(10).plusDays(1).plusHours(12),
+              utcNow()
                   .minusYears(1)
                   .plusMonths(10)
                   .plusDays(3)
@@ -103,8 +114,8 @@ public class SampleVoyages {
                   .plusMinutes(30))
           .addMovement(
               SampleLocations.TOKYO,
-              LocalDateTime.now().minusYears(1).plusMonths(10).plusDays(4).plusHours(21),
-              LocalDateTime.now()
+              utcNow().minusYears(1).plusMonths(10).plusDays(4).plusHours(21),
+              utcNow()
                   .minusYears(1)
                   .plusMonths(10)
                   .plusDays(6)
@@ -112,8 +123,8 @@ public class SampleVoyages {
                   .plusMinutes(15))
           .addMovement(
               SampleLocations.MELBOURNE,
-              LocalDateTime.now().minusYears(1).plusMonths(10).plusDays(9).plusHours(11),
-              LocalDateTime.now()
+              utcNow().minusYears(1).plusMonths(10).plusDays(9).plusHours(11),
+              utcNow()
                   .minusYears(1)
                   .plusMonths(10)
                   .plusDays(12)
@@ -121,8 +132,8 @@ public class SampleVoyages {
                   .plusMinutes(30))
           .addMovement(
               SampleLocations.NEWYORK,
-              LocalDateTime.now().minusYears(1).plusMonths(10).plusDays(14).plusHours(12),
-              LocalDateTime.now()
+              utcNow().minusYears(1).plusMonths(10).plusDays(14).plusHours(12),
+              utcNow()
                   .minusYears(1)
                   .plusMonths(10)
                   .plusDays(23)
@@ -138,8 +149,8 @@ public class SampleVoyages {
       new Voyage.Builder(new VoyageNumber("0200T"), SampleLocations.NEWYORK)
           .addMovement(
               SampleLocations.CHICAGO,
-              LocalDateTime.now().minusYears(1).plusMonths(10).plusDays(24).plusHours(7),
-              LocalDateTime.now()
+              utcNow().minusYears(1).plusMonths(10).plusDays(24).plusHours(7),
+              utcNow()
                   .minusYears(1)
                   .plusMonths(10)
                   .plusDays(24)
@@ -147,13 +158,13 @@ public class SampleVoyages {
                   .plusMinutes(45))
           .addMovement(
               SampleLocations.DALLAS,
-              LocalDateTime.now()
+              utcNow()
                   .minusYears(1)
                   .plusMonths(10)
                   .plusDays(24)
                   .plusHours(21)
                   .plusMinutes(25),
-              LocalDateTime.now()
+              utcNow()
                   .minusYears(1)
                   .plusMonths(10)
                   .plusDays(25)
@@ -169,22 +180,22 @@ public class SampleVoyages {
       new Voyage.Builder(new VoyageNumber("0300A"), SampleLocations.DALLAS)
           .addMovement(
               SampleLocations.HAMBURG,
-              LocalDateTime.now()
+              utcNow()
                   .minusYears(1)
                   .plusMonths(10)
                   .plusDays(29)
                   .plusHours(3)
                   .plusMinutes(30),
-              LocalDateTime.now().minusYears(1).plusMonths(10).plusDays(31).plusHours(14))
+              utcNow().minusYears(1).plusMonths(10).plusDays(31).plusHours(14))
           .addMovement(
               SampleLocations.STOCKHOLM,
-              LocalDateTime.now()
+              utcNow()
                   .minusYears(1)
                   .plusMonths(11)
                   .plusDays(1)
                   .plusHours(15)
                   .plusMinutes(20),
-              LocalDateTime.now()
+              utcNow()
                   .minusYears(1)
                   .plusMonths(11)
                   .plusDays(1)
@@ -192,8 +203,8 @@ public class SampleVoyages {
                   .plusMinutes(40))
           .addMovement(
               SampleLocations.HELSINKI,
-              LocalDateTime.now().minusYears(1).plusMonths(11).plusDays(2).plusHours(9),
-              LocalDateTime.now()
+              utcNow().minusYears(1).plusMonths(11).plusDays(2).plusHours(9),
+              utcNow()
                   .minusYears(1)
                   .plusMonths(11)
                   .plusDays(2)
@@ -209,13 +220,13 @@ public class SampleVoyages {
       new Voyage.Builder(new VoyageNumber("0301S"), SampleLocations.DALLAS)
           .addMovement(
               SampleLocations.HELSINKI,
-              LocalDateTime.now()
+              utcNow()
                   .minusYears(1)
                   .plusMonths(10)
                   .plusDays(29)
                   .plusHours(3)
                   .plusMinutes(30),
-              LocalDateTime.now()
+              utcNow()
                   .minusYears(1)
                   .plusMonths(11)
                   .plusDays(5)
@@ -231,13 +242,13 @@ public class SampleVoyages {
       new Voyage.Builder(new VoyageNumber("0400S"), SampleLocations.HELSINKI)
           .addMovement(
               SampleLocations.ROTTERDAM,
-              LocalDateTime.now()
+              utcNow()
                   .minusYears(1)
                   .plusMonths(11)
                   .plusDays(4)
                   .plusHours(5)
                   .plusMinutes(50),
-              LocalDateTime.now()
+              utcNow()
                   .minusYears(1)
                   .plusMonths(11)
                   .plusDays(6)
@@ -245,13 +256,13 @@ public class SampleVoyages {
                   .plusMinutes(10))
           .addMovement(
               SampleLocations.SHANGHAI,
-              LocalDateTime.now()
+              utcNow()
                   .minusYears(1)
                   .plusMonths(11)
                   .plusDays(10)
                   .plusHours(21)
                   .plusMinutes(45),
-              LocalDateTime.now()
+              utcNow()
                   .minusYears(1)
                   .plusMonths(11)
                   .plusDays(22)
@@ -259,8 +270,8 @@ public class SampleVoyages {
                   .plusMinutes(40))
           .addMovement(
               SampleLocations.HONGKONG,
-              LocalDateTime.now().minusYears(1).plusMonths(11).plusDays(24).plusHours(7),
-              LocalDateTime.now()
+              utcNow().minusYears(1).plusMonths(11).plusDays(24).plusHours(7),
+              utcNow()
                   .minusYears(1)
                   .plusMonths(11)
                   .plusDays(28)
@@ -268,19 +279,23 @@ public class SampleVoyages {
                   .plusMinutes(37))
           .build();
 
-  public static final Map<VoyageNumber, Voyage> ALL = new HashMap<>();
+  // Use an unmodifiable map to prevent static mutable state issues in distributed cloud deployments
+  public static final Map<VoyageNumber, Voyage> ALL;
 
   static {
+    Map<VoyageNumber, Voyage> tempMap = new HashMap<>();
     for (Field field : SampleVoyages.class.getDeclaredFields()) {
       if (field.getType().equals(Voyage.class)) {
         try {
           Voyage voyage = (Voyage) field.get(null);
-          ALL.put(voyage.getVoyageNumber(), voyage);
+          tempMap.put(voyage.getVoyageNumber(), voyage);
         } catch (IllegalAccessException e) {
           throw new RuntimeException(e);
         }
       }
     }
+    // Use unmodifiableMap to prevent mutation of shared state across distributed instances
+    ALL = Collections.unmodifiableMap(tempMap);
   }
 
   private static Voyage createVoyage(String id, Location from, Location to) {
@@ -288,7 +303,7 @@ public class SampleVoyages {
         new VoyageNumber(id),
         new Schedule(
             Collections.singletonList(
-                new CarrierMovement(from, to, LocalDateTime.now(), LocalDateTime.now()))));
+                new CarrierMovement(from, to, utcNow(), utcNow()))));
   }
 
   public static List<Voyage> getAll() {

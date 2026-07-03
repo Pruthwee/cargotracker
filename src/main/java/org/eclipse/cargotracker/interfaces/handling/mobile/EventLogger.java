@@ -3,7 +3,9 @@ package org.eclipse.cargotracker.interfaces.handling.mobile;
 import static java.util.stream.Collectors.toMap;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -33,6 +35,10 @@ import org.eclipse.cargotracker.domain.model.voyage.VoyageRepository;
 import org.eclipse.cargotracker.interfaces.handling.HandlingEventRegistrationAttempt;
 import org.primefaces.event.FlowEvent;
 
+/**
+ * Event logger that uses UTC-based time for cloud-native time handling
+ * across distributed environments.
+ */
 @Named
 @ViewScoped
 public class EventLogger implements Serializable {
@@ -171,7 +177,8 @@ public class EventLogger implements Serializable {
     }
 
     if ("dateTab".equals(event.getNewStep())) {
-      completionTime = LocalDateTime.now();
+      // Use UTC-based Instant for consistent time handling across distributed cloud instances
+      completionTime = LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC);
     }
 
     return event.getNewStep();
@@ -203,9 +210,11 @@ public class EventLogger implements Serializable {
       voyage = null;
     }
 
+    // Use UTC-based Instant for consistent time handling across distributed cloud instances
     HandlingEventRegistrationAttempt attempt =
         new HandlingEventRegistrationAttempt(
-            LocalDateTime.now(), completionTime, trackingId, voyage, eventType, location);
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
+            completionTime, trackingId, voyage, eventType, location);
 
     applicationEvents.receivedHandlingEventRegistrationAttempt(attempt);
 

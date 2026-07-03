@@ -24,9 +24,17 @@ import org.eclipse.cargotracker.domain.model.location.UnLocode;
 /**
  * At the moment, coordinates are produced by a simple factory. It may be converted to a repository
  * if coordinates become a domain layer concern.
+ *
+ * <p>NOTE: For cloud-native deployments with multiple instances, consider migrating this
+ * static in-memory map to Amazon ElastiCache for Redis with appropriate TTL policies
+ * to ensure consistent data across distributed application instances. The current
+ * implementation uses an immutable map which is safe for read-only access across instances.
  */
 public class CoordinatesFactory {
 
+  // This map is immutable (unmodifiable) - safe for read-only access across distributed instances.
+  // For mutable caching scenarios in cloud environments, use Amazon ElastiCache for Redis
+  // with TTL policies to prevent stale data and ensure cross-instance consistency.
   private static final Map<String, Coordinates> COORDINATES_MAP;
 
   private CoordinatesFactory() {
@@ -64,6 +72,7 @@ public class CoordinatesFactory {
     map.put(DALLAS.getUnLocode().getIdString(), new Coordinates(33, -97));
     map.put(UNKNOWN.getUnLocode().getIdString(), new Coordinates(-90, 0)); // The South Pole.
 
+    // Use unmodifiableMap to prevent mutation - safe for distributed cloud instances
     COORDINATES_MAP = Collections.unmodifiableMap(map);
   }
 }

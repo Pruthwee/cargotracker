@@ -1,6 +1,8 @@
 package org.eclipse.pathfinder.api;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,6 +19,10 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import org.eclipse.pathfinder.internal.GraphDao;
 
+/**
+ * Graph traversal service that uses UTC-based time for cloud-native time handling
+ * across distributed environments.
+ */
 @Stateless
 @Path("/graph-traversal")
 public class GraphTraversalService {
@@ -62,7 +68,8 @@ public class GraphTraversalService {
       allVertices = getRandomChunkOfLocations(allVertices);
       List<TransitEdge> transitEdges = new ArrayList<>(allVertices.size() - 1);
       String fromUnLocode = originUnLocode;
-      LocalDateTime date = LocalDateTime.now();
+      // Use UTC-based Instant for consistent time handling across distributed cloud instances
+      LocalDateTime date = LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC);
 
       for (int j = 0; j <= allVertices.size(); ++j) {
         LocalDateTime fromDate = nextDate(date);

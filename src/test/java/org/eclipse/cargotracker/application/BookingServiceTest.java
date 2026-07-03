@@ -76,6 +76,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @ExtendWith(ArquillianExtension.class)
 @TestMethodOrder(OrderAnnotation.class)
 public class BookingServiceTest {
+  // NOTE: In production cloud deployments, shared mutable state across distributed instances
+  // should use Amazon ElastiCache for Redis to ensure consistency.
+  // These static fields are test-only ordered test state and are acceptable in test context.
   private static TrackingId trackingId;
   private static List<Itinerary> candidates;
   private static LocalDate deadline;

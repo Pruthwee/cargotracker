@@ -1,7 +1,9 @@
 package org.eclipse.cargotracker.application.util;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.logging.Logger;
 import jakarta.annotation.PostConstruct;
@@ -27,7 +29,11 @@ import org.eclipse.cargotracker.domain.model.handling.HandlingHistory;
 import org.eclipse.cargotracker.domain.model.location.SampleLocations;
 import org.eclipse.cargotracker.domain.model.voyage.SampleVoyages;
 
-/** Loads sample data for demo. */
+/**
+ * Loads sample data for demo.
+ * Uses UTC-based time (via Instant and ZoneOffset.UTC) for cloud-native time handling
+ * across distributed environments.
+ */
 @Singleton
 @Startup
 public class SampleDataGenerator {
@@ -37,6 +43,11 @@ public class SampleDataGenerator {
   @PersistenceContext private EntityManager entityManager;
   @Inject private HandlingEventFactory handlingEventFactory;
   @Inject private HandlingEventRepository handlingEventRepository;
+
+  // Helper method to get current UTC time as LocalDateTime for cloud-native consistency
+  private static LocalDateTime utcNow() {
+    return LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC);
+  }
 
   @PostConstruct
   @TransactionAttribute(TransactionAttributeType.REQUIRED)
@@ -102,7 +113,7 @@ public class SampleDataGenerator {
 
     RouteSpecification routeSpecification1 =
         new RouteSpecification(
-            SampleLocations.HONGKONG, SampleLocations.HELSINKI, LocalDate.now().plusDays(15));
+            SampleLocations.HONGKONG, SampleLocations.HELSINKI, LocalDate.now(ZoneOffset.UTC).plusDays(15));
     Cargo abc123 = new Cargo(trackingId1, routeSpecification1);
 
     Itinerary itinerary1 =
@@ -112,20 +123,20 @@ public class SampleDataGenerator {
                     SampleVoyages.HONGKONG_TO_NEW_YORK,
                     SampleLocations.HONGKONG,
                     SampleLocations.NEWYORK,
-                    LocalDateTime.now().minusDays(7).minusHours(2).minusMinutes(4),
-                    LocalDateTime.now().minusDays(1).minusHours(10).minusMinutes(52)),
+                    utcNow().minusDays(7).minusHours(2).minusMinutes(4),
+                    utcNow().minusDays(1).minusHours(10).minusMinutes(52)),
                 new Leg(
                     SampleVoyages.NEW_YORK_TO_DALLAS,
                     SampleLocations.NEWYORK,
                     SampleLocations.DALLAS,
-                    LocalDateTime.now().plusDays(2).minusHours(18).minusMinutes(38),
-                    LocalDateTime.now().plusDays(6).minusHours(3).minusMinutes(22)),
+                    utcNow().plusDays(2).minusHours(18).minusMinutes(38),
+                    utcNow().plusDays(6).minusHours(3).minusMinutes(22)),
                 new Leg(
                     SampleVoyages.DALLAS_TO_HELSINKI,
                     SampleLocations.DALLAS,
                     SampleLocations.HELSINKI,
-                    LocalDateTime.now().plusDays(8).minusHours(8).minusMinutes(18),
-                    LocalDateTime.now().plusDays(14).minusHours(12).minusMinutes(29))));
+                    utcNow().plusDays(8).minusHours(8).minusMinutes(18),
+                    utcNow().plusDays(14).minusHours(12).minusMinutes(29))));
     abc123.assignToRoute(itinerary1);
 
     entityManager.persist(abc123);
@@ -133,8 +144,8 @@ public class SampleDataGenerator {
     try {
       HandlingEvent event1 =
           handlingEventFactory.createHandlingEvent(
-              LocalDateTime.now().minusHours(5).minusMinutes(5),
-              LocalDateTime.now().minusDays(10).minusHours(9).minusMinutes(11),
+              utcNow().minusHours(5).minusMinutes(5),
+              utcNow().minusDays(10).minusHours(9).minusMinutes(11),
               trackingId1,
               null,
               SampleLocations.HONGKONG.getUnLocode(),
@@ -143,8 +154,8 @@ public class SampleDataGenerator {
 
       HandlingEvent event2 =
           handlingEventFactory.createHandlingEvent(
-              LocalDateTime.now().minusHours(6).minusMinutes(46),
-              LocalDateTime.now().minusDays(7).minusHours(2).minusMinutes(50),
+              utcNow().minusHours(6).minusMinutes(46),
+              utcNow().minusDays(7).minusHours(2).minusMinutes(50),
               trackingId1,
               SampleVoyages.HONGKONG_TO_NEW_YORK.getVoyageNumber(),
               SampleLocations.HONGKONG.getUnLocode(),
@@ -153,8 +164,8 @@ public class SampleDataGenerator {
 
       HandlingEvent event3 =
           handlingEventFactory.createHandlingEvent(
-              LocalDateTime.now().minusHours(15).minusMinutes(26),
-              LocalDateTime.now().minusDays(1).minusHours(4).minusMinutes(32),
+              utcNow().minusHours(15).minusMinutes(26),
+              utcNow().minusDays(1).minusHours(4).minusMinutes(32),
               trackingId1,
               SampleVoyages.HONGKONG_TO_NEW_YORK.getVoyageNumber(),
               SampleLocations.NEWYORK.getUnLocode(),
@@ -175,7 +186,7 @@ public class SampleDataGenerator {
 
     RouteSpecification routeSpecification2 =
         new RouteSpecification(
-            SampleLocations.HANGZOU, SampleLocations.STOCKHOLM, LocalDate.now().plusDays(18));
+            SampleLocations.HANGZOU, SampleLocations.STOCKHOLM, LocalDate.now(ZoneOffset.UTC).plusDays(18));
     Cargo jkl567 = new Cargo(trackingId2, routeSpecification2);
 
     Itinerary itinerary2 =
@@ -185,20 +196,20 @@ public class SampleDataGenerator {
                     SampleVoyages.HONGKONG_TO_NEW_YORK,
                     SampleLocations.HANGZOU,
                     SampleLocations.NEWYORK,
-                    LocalDateTime.now().minusDays(10).minusHours(1).minusMinutes(19),
-                    LocalDateTime.now().minusDays(3).minusHours(7).minusMinutes(2)),
+                    utcNow().minusDays(10).minusHours(1).minusMinutes(19),
+                    utcNow().minusDays(3).minusHours(7).minusMinutes(2)),
                 new Leg(
                     SampleVoyages.NEW_YORK_TO_DALLAS,
                     SampleLocations.NEWYORK,
                     SampleLocations.DALLAS,
-                    LocalDateTime.now().minusDays(2).minusHours(17).minusMinutes(3),
-                    LocalDateTime.now().plusDays(2).minusHours(5).minusMinutes(20)),
+                    utcNow().minusDays(2).minusHours(17).minusMinutes(3),
+                    utcNow().plusDays(2).minusHours(5).minusMinutes(20)),
                 new Leg(
                     SampleVoyages.DALLAS_TO_HELSINKI,
                     SampleLocations.DALLAS,
                     SampleLocations.STOCKHOLM,
-                    LocalDateTime.now().plusDays(6).minusHours(11).minusMinutes(38),
-                    LocalDateTime.now().plusDays(15).minusHours(4).minusMinutes(1))));
+                    utcNow().plusDays(6).minusHours(11).minusMinutes(38),
+                    utcNow().plusDays(15).minusHours(4).minusMinutes(1))));
     jkl567.assignToRoute(itinerary2);
 
     entityManager.persist(jkl567);
@@ -206,8 +217,8 @@ public class SampleDataGenerator {
     try {
       HandlingEvent event1 =
           handlingEventFactory.createHandlingEvent(
-              LocalDateTime.now().minusHours(2).minusMinutes(44),
-              LocalDateTime.now().minusDays(15).minusHours(14).minusMinutes(33),
+              utcNow().minusHours(2).minusMinutes(44),
+              utcNow().minusDays(15).minusHours(14).minusMinutes(33),
               trackingId2,
               null,
               SampleLocations.HANGZOU.getUnLocode(),
@@ -216,8 +227,8 @@ public class SampleDataGenerator {
 
       HandlingEvent event2 =
           handlingEventFactory.createHandlingEvent(
-              LocalDateTime.now().minusHours(3).minusMinutes(12),
-              LocalDateTime.now().minusDays(10).minusHours(3).minusMinutes(17),
+              utcNow().minusHours(3).minusMinutes(12),
+              utcNow().minusDays(10).minusHours(3).minusMinutes(17),
               trackingId2,
               SampleVoyages.HONGKONG_TO_NEW_YORK.getVoyageNumber(),
               SampleLocations.HANGZOU.getUnLocode(),
@@ -226,8 +237,8 @@ public class SampleDataGenerator {
 
       HandlingEvent event3 =
           handlingEventFactory.createHandlingEvent(
-              LocalDateTime.now().minusHours(3).minusMinutes(21),
-              LocalDateTime.now().minusDays(3).minusHours(22).minusMinutes(1),
+              utcNow().minusHours(3).minusMinutes(21),
+              utcNow().minusDays(3).minusHours(22).minusMinutes(1),
               trackingId2,
               SampleVoyages.HONGKONG_TO_NEW_YORK.getVoyageNumber(),
               SampleLocations.NEWYORK.getUnLocode(),
@@ -237,8 +248,8 @@ public class SampleDataGenerator {
       // The wrong voyage!
       HandlingEvent event4 =
           handlingEventFactory.createHandlingEvent(
-              LocalDateTime.now().minusHours(18).minusMinutes(36),
-              LocalDateTime.now().minusDays(2).minusHours(8).minusMinutes(7),
+              utcNow().minusHours(18).minusMinutes(36),
+              utcNow().minusDays(2).minusHours(8).minusMinutes(7),
               trackingId2,
               SampleVoyages.HONGKONG_TO_NEW_YORK.getVoyageNumber(),
               SampleLocations.NEWYORK.getUnLocode(),
@@ -259,7 +270,7 @@ public class SampleDataGenerator {
 
     RouteSpecification routeSpecification3 =
         new RouteSpecification(
-            SampleLocations.HONGKONG, SampleLocations.MELBOURNE, LocalDate.now().plusMonths(2));
+            SampleLocations.HONGKONG, SampleLocations.MELBOURNE, LocalDate.now(ZoneOffset.UTC).plusMonths(2));
 
     Cargo def789 = new Cargo(trackingId3, routeSpecification3);
     entityManager.persist(def789);
@@ -268,7 +279,7 @@ public class SampleDataGenerator {
     TrackingId trackingId4 = new TrackingId("MNO456");
     RouteSpecification routeSpecification4 =
         new RouteSpecification(
-            SampleLocations.NEWYORK, SampleLocations.DALLAS, LocalDate.now().minusDays(24));
+            SampleLocations.NEWYORK, SampleLocations.DALLAS, LocalDate.now(ZoneOffset.UTC).minusDays(24));
 
     Cargo mno456 = new Cargo(trackingId4, routeSpecification4);
 
@@ -279,8 +290,8 @@ public class SampleDataGenerator {
                     SampleVoyages.NEW_YORK_TO_DALLAS,
                     SampleLocations.NEWYORK,
                     SampleLocations.DALLAS,
-                    LocalDateTime.now().minusDays(34).minusHours(1).minusMinutes(1),
-                    LocalDateTime.now().minusDays(28).minusHours(10).minusMinutes(1))));
+                    utcNow().minusDays(34).minusHours(1).minusMinutes(1),
+                    utcNow().minusDays(28).minusHours(10).minusMinutes(1))));
 
     mno456.assignToRoute(itinerary4);
     entityManager.persist(mno456);
@@ -288,8 +299,8 @@ public class SampleDataGenerator {
     try {
       HandlingEvent event1 =
           handlingEventFactory.createHandlingEvent(
-              LocalDateTime.now().minusHours(16).minusMinutes(9),
-              LocalDateTime.now().minusDays(37).minusHours(2).minusMinutes(21),
+              utcNow().minusHours(16).minusMinutes(9),
+              utcNow().minusDays(37).minusHours(2).minusMinutes(21),
               trackingId4,
               null,
               SampleLocations.NEWYORK.getUnLocode(),
@@ -299,8 +310,8 @@ public class SampleDataGenerator {
 
       HandlingEvent event2 =
           handlingEventFactory.createHandlingEvent(
-              LocalDateTime.now().minusHours(3).minusMinutes(9),
-              LocalDateTime.now().minusDays(34).minusHours(3).minusMinutes(8),
+              utcNow().minusHours(3).minusMinutes(9),
+              utcNow().minusDays(34).minusHours(3).minusMinutes(8),
               trackingId4,
               SampleVoyages.NEW_YORK_TO_DALLAS.getVoyageNumber(),
               SampleLocations.NEWYORK.getUnLocode(),
@@ -310,8 +321,8 @@ public class SampleDataGenerator {
 
       HandlingEvent event3 =
           handlingEventFactory.createHandlingEvent(
-              LocalDateTime.now().minusHours(14).minusMinutes(10),
-              LocalDateTime.now().minusDays(28).minusHours(7).minusMinutes(7),
+              utcNow().minusHours(14).minusMinutes(10),
+              utcNow().minusDays(28).minusHours(7).minusMinutes(7),
               trackingId4,
               SampleVoyages.NEW_YORK_TO_DALLAS.getVoyageNumber(),
               SampleLocations.DALLAS.getUnLocode(),
@@ -321,8 +332,8 @@ public class SampleDataGenerator {
 
       HandlingEvent event4 =
           handlingEventFactory.createHandlingEvent(
-              LocalDateTime.now().minusHours(22).minusMinutes(1),
-              LocalDateTime.now().minusDays(27).minusHours(18).minusMinutes(3),
+              utcNow().minusHours(22).minusMinutes(1),
+              utcNow().minusDays(27).minusHours(18).minusMinutes(3),
               trackingId4,
               null,
               SampleLocations.DALLAS.getUnLocode(),
@@ -332,8 +343,8 @@ public class SampleDataGenerator {
 
       HandlingEvent event5 =
           handlingEventFactory.createHandlingEvent(
-              LocalDateTime.now().minusHours(9).minusMinutes(30),
-              LocalDateTime.now().minusDays(26).minusHours(14).minusMinutes(15),
+              utcNow().minusHours(9).minusMinutes(30),
+              utcNow().minusDays(26).minusHours(14).minusMinutes(15),
               trackingId4,
               null,
               SampleLocations.DALLAS.getUnLocode(),

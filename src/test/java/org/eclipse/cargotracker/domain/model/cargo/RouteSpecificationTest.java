@@ -4,7 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDate;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Arrays;
 import org.eclipse.cargotracker.domain.model.location.SampleLocations;
 import org.eclipse.cargotracker.domain.model.voyage.Voyage;
@@ -17,27 +19,27 @@ public class RouteSpecificationTest {
       new Voyage.Builder(new VoyageNumber("V001"), SampleLocations.HONGKONG)
           .addMovement(
               SampleLocations.TOKYO,
-              LocalDateTime.now().minusYears(1).plusMonths(2).plusDays(1),
-              LocalDateTime.now().minusYears(1).plusMonths(2).plusDays(5))
+              LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC).minusYears(1).plusMonths(2).plusDays(1),
+              LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC).minusYears(1).plusMonths(2).plusDays(5))
           .addMovement(
               SampleLocations.NEWYORK,
-              LocalDateTime.now().minusYears(1).plusMonths(2).plusDays(6),
-              LocalDateTime.now().minusYears(1).plusMonths(2).plusDays(10))
+              LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC).minusYears(1).plusMonths(2).plusDays(6),
+              LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC).minusYears(1).plusMonths(2).plusDays(10))
           .addMovement(
               SampleLocations.HONGKONG,
-              LocalDateTime.now().minusYears(1).plusMonths(2).plusDays(11),
-              LocalDateTime.now().minusYears(1).plusMonths(2).plusDays(14))
+              LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC).minusYears(1).plusMonths(2).plusDays(11),
+              LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC).minusYears(1).plusMonths(2).plusDays(14))
           .build();
   Voyage dallasNewYorkChicago =
       new Voyage.Builder(new VoyageNumber("V002"), SampleLocations.DALLAS)
           .addMovement(
               SampleLocations.NEWYORK,
-              LocalDateTime.now().minusYears(1).plusMonths(2).plusDays(6),
-              LocalDateTime.now().minusYears(1).plusMonths(2).plusDays(7))
+              LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC).minusYears(1).plusMonths(2).plusDays(6),
+              LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC).minusYears(1).plusMonths(2).plusDays(7))
           .addMovement(
               SampleLocations.CHICAGO,
-              LocalDateTime.now().minusYears(1).plusMonths(2).plusDays(12),
-              LocalDateTime.now().minusYears(1).plusMonths(2).plusDays(20))
+              LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC).minusYears(1).plusMonths(2).plusDays(12),
+              LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC).minusYears(1).plusMonths(2).plusDays(20))
           .build();
   Itinerary itinerary =
       new Itinerary(
@@ -46,14 +48,14 @@ public class RouteSpecificationTest {
                   hongKongTokyoNewYork,
                   SampleLocations.HONGKONG,
                   SampleLocations.NEWYORK,
-                  LocalDateTime.now().minusYears(1).plusMonths(2).plusDays(1),
-                  LocalDateTime.now().minusYears(1).plusMonths(2).plusDays(10)),
+                  LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC).minusYears(1).plusMonths(2).plusDays(1),
+                  LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC).minusYears(1).plusMonths(2).plusDays(10)),
               new Leg(
                   dallasNewYorkChicago,
                   SampleLocations.NEWYORK,
                   SampleLocations.CHICAGO,
-                  LocalDateTime.now().minusYears(1).plusMonths(2).plusDays(12),
-                  LocalDateTime.now().minusYears(1).plusMonths(2).plusDays(20))));
+                  LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC).minusYears(1).plusMonths(2).plusDays(12),
+                  LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC).minusYears(1).plusMonths(2).plusDays(20))));
 
   @Test
   public void testIsSatisfiedBySuccess() {

@@ -4,7 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.time.LocalDate;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Arrays;
 import org.eclipse.cargotracker.domain.model.cargo.Cargo;
 import org.eclipse.cargotracker.domain.model.cargo.RouteSpecification;
@@ -25,8 +27,8 @@ public class HandlingEventTest {
     HandlingEvent event1 =
         new HandlingEvent(
             cargo,
-            LocalDateTime.now(),
-            LocalDateTime.now(),
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
             HandlingEvent.Type.LOAD,
             SampleLocations.HONGKONG,
             SampleVoyages.CM003);
@@ -35,8 +37,8 @@ public class HandlingEventTest {
     HandlingEvent event2 =
         new HandlingEvent(
             cargo,
-            LocalDateTime.now(),
-            LocalDateTime.now(),
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
             HandlingEvent.Type.UNLOAD,
             SampleLocations.NEWYORK,
             SampleVoyages.CM003);
@@ -49,8 +51,8 @@ public class HandlingEventTest {
       try {
         new HandlingEvent(
             cargo,
-            LocalDateTime.now(),
-            LocalDateTime.now(),
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
             type,
             SampleLocations.HONGKONG,
             SampleVoyages.CM003);
@@ -64,7 +66,7 @@ public class HandlingEventTest {
         Arrays.asList(HandlingEvent.Type.LOAD, HandlingEvent.Type.UNLOAD)) {
       try {
         new HandlingEvent(
-            cargo, LocalDateTime.now(), LocalDateTime.now(), type, SampleLocations.HONGKONG, null);
+            cargo, LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC), LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC), type, SampleLocations.HONGKONG, null);
         fail("Handling event type " + type + " requires carrier movement");
       } catch (NullPointerException expected) {
       }
@@ -76,8 +78,8 @@ public class HandlingEventTest {
     HandlingEvent event1 =
         new HandlingEvent(
             cargo,
-            LocalDateTime.now(),
-            LocalDateTime.now(),
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
             HandlingEvent.Type.CLAIM,
             SampleLocations.HELSINKI);
     assertEquals(SampleLocations.HELSINKI, event1.getLocation());
@@ -88,8 +90,8 @@ public class HandlingEventTest {
     HandlingEvent event =
         new HandlingEvent(
             cargo,
-            LocalDateTime.now(),
-            LocalDateTime.now(),
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
             HandlingEvent.Type.LOAD,
             SampleLocations.CHICAGO,
             SampleVoyages.CM004);
@@ -102,8 +104,8 @@ public class HandlingEventTest {
     HandlingEvent ev =
         new HandlingEvent(
             cargo,
-            LocalDateTime.now(),
-            LocalDateTime.now(),
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
             HandlingEvent.Type.UNLOAD,
             SampleLocations.HAMBURG,
             SampleVoyages.CM004);
@@ -116,8 +118,8 @@ public class HandlingEventTest {
     HandlingEvent event =
         new HandlingEvent(
             cargo,
-            LocalDateTime.now(),
-            LocalDateTime.now(),
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
             HandlingEvent.Type.RECEIVE,
             SampleLocations.CHICAGO);
 
@@ -129,8 +131,8 @@ public class HandlingEventTest {
     HandlingEvent event =
         new HandlingEvent(
             cargo,
-            LocalDateTime.now(),
-            LocalDateTime.now(),
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
+            LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC),
             HandlingEvent.Type.CLAIM,
             SampleLocations.CHICAGO);
 
