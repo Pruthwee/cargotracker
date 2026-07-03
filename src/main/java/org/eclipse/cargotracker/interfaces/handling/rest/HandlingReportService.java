@@ -43,11 +43,6 @@ public class HandlingReportService {
     UnLocode unLocode = new UnLocode(handlingReport.getUnLocode());
 
     TrackingId trackingId = new TrackingId(handlingReport.getTrackingId());
-
-    HandlingEventRegistrationAttempt attempt =
         new HandlingEventRegistrationAttempt(
-            LocalDateTime.now(), completionTime, trackingId, voyageNumber, type, unLocode);
-
-    applicationEvents.receivedHandlingEventRegistrationAttempt(attempt);
-  }
+            LocalDateTime.now(java.time.Clock.systemUTC()), completionTime, trackingId, voyageNumber, type, unLocode);
 }

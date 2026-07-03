@@ -28,27 +28,15 @@ public class DefaultHandlingEventService implements HandlingEventService {
       TrackingId trackingId,
       VoyageNumber voyageNumber,
       UnLocode unLocode,
-      HandlingEvent.Type type)
-      throws CannotCreateHandlingEventException {
-    LocalDateTime registrationTime = LocalDateTime.now();
+      HandlingEvent.Type type) throws CannotCreateHandlingEventException {
 
-    /*
-     * Using a factory to create a HandlingEvent (aggregate). This is where it is
-     * determined whether the incoming data, the attempt, actually is capable of
-     * representing a real handling event.
-     */
+    LocalDateTime registrationTime = LocalDateTime.now(java.time.Clock.systemUTC());
+
     HandlingEvent event =
         handlingEventFactory.createHandlingEvent(
             registrationTime, completionTime, trackingId, voyageNumber, unLocode, type);
 
-    /*
-     * Store the new handling event, which updates the persistent state of the
-     * handling event aggregate (but not the cargo aggregate - that happens
-     * asynchronously!)
-     */
     handlingEventRepository.store(event);
-
-    /* Publish an event stating that a cargo has been handled. */
     applicationEvents.cargoWasHandled(event);
 
     logger.info("Registered handling event");

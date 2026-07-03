@@ -87,13 +87,7 @@ public class Delivery implements Serializable {
       HandlingEvent lastEvent, Itinerary itinerary, RouteSpecification routeSpecification) {
     // This is a workaround to a Hibernate issue. when the `LocalDateTime` field is persisted into
     // the DB, and retrieved from the DB, the values are different by nanoseconds.
-    this.calculatedAt = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
-    this.lastEvent = lastEvent;
-
-    this.misdirected = calculateMisdirectionStatus(itinerary);
-    this.routingStatus = calculateRoutingStatus(itinerary, routeSpecification);
-    this.transportStatus = calculateTransportStatus();
-    this.lastKnownLocation = calculateLastKnownLocation();
+    this.calculatedAt = LocalDateTime.now(java.time.Clock.systemUTC()).truncatedTo(ChronoUnit.SECONDS);
     this.currentVoyage = calculateCurrentVoyage();
     this.eta = calculateEta(itinerary);
     this.nextExpectedActivity = calculateNextExpectedActivity(routeSpecification, itinerary);
@@ -104,13 +98,7 @@ public class Delivery implements Serializable {
    * Creates a new delivery snapshot based on the complete handling history of a cargo, as well as
    * its route specification and itinerary.
    *
-   * @param routeSpecification route specification
-   * @param itinerary itinerary
-   * @param handlingHistory delivery history
-   * @return An up to date delivery.
-   */
-  static Delivery derivedFrom(
-      RouteSpecification routeSpecification, Itinerary itinerary, HandlingHistory handlingHistory) {
+    this.calculatedAt = LocalDateTime.now(java.time.Clock.systemUTC()).truncatedTo(ChronoUnit.SECONDS);
     Validate.notNull(routeSpecification, "Route specification is required");
     Validate.notNull(handlingHistory, "Delivery history is required");
 

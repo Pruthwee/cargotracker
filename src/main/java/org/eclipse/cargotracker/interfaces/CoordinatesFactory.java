@@ -20,6 +20,9 @@ import java.util.HashMap;
 import java.util.Map;
 import org.eclipse.cargotracker.domain.model.location.Location;
 import org.eclipse.cargotracker.domain.model.location.UnLocode;
+import io.lettuce.core.RedisClient;
+import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.api.sync.RedisCommands;
 
 /**
  * At the moment, coordinates are produced by a simple factory. It may be converted to a repository
@@ -27,7 +30,10 @@ import org.eclipse.cargotracker.domain.model.location.UnLocode;
  */
 public class CoordinatesFactory {
 
-  private static final Map<String, Coordinates> COORDINATES_MAP;
+  private static final String REDIS_HOST = System.getenv("REDIS_HOST") != null ? System.getenv("REDIS_HOST") : "localhost";
+  private static final RedisClient redisClient = RedisClient.create("redis://" + REDIS_HOST);
+  private static final StatefulRedisConnection<String, String> connection = redisClient.connect();
+  private static final RedisCommands<String, String> syncCommands = connection.sync();
 
   private CoordinatesFactory() {
     /* Prevent instantiation. */
@@ -42,28 +48,36 @@ public class CoordinatesFactory {
   }
 
   public static Coordinates find(String unLocode) {
-    return COORDINATES_MAP.get(unLocode);
+    String coords = syncCommands.get("coords:" + unLocode);
+    if (coords != null) {
+      String[] parts = coords.split(",");
+      return new Coordinates(Integer.parseInt(parts[0]), Integer.parseInt(parts[1]));
+    }
+    
+    // Fallback to initial load if not in cache (simulating the original map)
+    Coordinates coord = getInitialCoordinate(unLocode);
+    if (coord != null) {
+      syncCommands.setex("coords:" + unLocode, 3600, coord.getLatitude() + "," + coord.getLongitude());
+    }
+    return coord;
   }
 
-  static {
-    Map<String, Coordinates> map = new HashMap<>();
-
-    // TODO [Clean Code] See if there is a service to get the latitude/longitude data from.
-    map.put(HONGKONG.getUnLocode().getIdString(), new Coordinates(22, 114));
-    map.put(MELBOURNE.getUnLocode().getIdString(), new Coordinates(-38, 145));
-    map.put(STOCKHOLM.getUnLocode().getIdString(), new Coordinates(59, 18));
-    map.put(HELSINKI.getUnLocode().getIdString(), new Coordinates(60, 25));
-    map.put(CHICAGO.getUnLocode().getIdString(), new Coordinates(42, -88));
-    map.put(TOKYO.getUnLocode().getIdString(), new Coordinates(36, 140));
-    map.put(HAMBURG.getUnLocode().getIdString(), new Coordinates(54, 10));
-    map.put(SHANGHAI.getUnLocode().getIdString(), new Coordinates(31, 121));
-    map.put(ROTTERDAM.getUnLocode().getIdString(), new Coordinates(52, 5));
-    map.put(GOTHENBURG.getUnLocode().getIdString(), new Coordinates(58, 12));
-    map.put(HANGZOU.getUnLocode().getIdString(), new Coordinates(30, 120));
-    map.put(NEWYORK.getUnLocode().getIdString(), new Coordinates(41, -74));
-    map.put(DALLAS.getUnLocode().getIdString(), new Coordinates(33, -97));
-    map.put(UNKNOWN.getUnLocode().getIdString(), new Coordinates(-90, 0)); // The South Pole.
-
-    COORDINATES_MAP = Collections.unmodifiableMap(map);
+  private static Coordinates getInitialCoordinate(String unLocode) {
+    // This mimics the original static map for initial population
+    if (HONGKONG.getUnLocode().getIdString().equals(unLocode)) return new Coordinates(22, 114);
+    if (MELBOURNE.getUnLocode().getIdString().equals(unLocode)) return new Coordinates(-38, 145);
+    if (STOCKHOLM.getUnLocode().getIdString().equals(unLocode)) return new Coordinates(59, 18);
+    if (HELSINKI.getUnLocode().getIdString().equals(unLocode)) return new Coordinates(60, 25);
+    if (CHICAGO.getUnLocode().getIdString().equals(unLocode)) return new Coordinates(42, -88);
+    if (TOKYO.getUnLocode().getIdString().equals(unLocode)) return new Coordinates(36, 140);
+    if (HAMBURG.getUnLocode().getIdString().equals(unLocode)) return new Coordinates(54, 10);
+    if (SHANGHAI.getUnLocode().getIdString().equals(unLocode)) return new Coordinates(31, 121);
+    if (ROTTERDAM.getUnLocode().getIdString().equals(unLocode)) return new Coordinates(52, 5);
+    if (GOTHENBURG.getUnLocode().getIdString().equals(unLocode)) return new Coordinates(58, 12);
+    if (HANGZOU.getUnLocode().getIdString().equals(unLocode)) return new Coordinates(30, 120);
+    if (NEWYORK.getUnLocode().getIdString().equals(unLocode)) return new Coordinates(41, -74);
+    if (DALLAS.getUnLocode().getIdString().equals(unLocode)) return new Coordinates(33, -97);
+    if (UNKNOWN.getUnLocode().getIdString().equals(unLocode)) return new Coordinates(-90, 0);
+    return null;
   }
 }

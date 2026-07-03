@@ -28,17 +28,30 @@ public class SampleVoyages {
   public static final Voyage v100 =
       new Voyage.Builder(new VoyageNumber("V100"), SampleLocations.HONGKONG)
           .addMovement(
-              SampleLocations.TOKYO,
-              LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(3).plusHours(6),
-              LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(5).plusHours(18))
-          .addMovement(
-              SampleLocations.NEWYORK,
-              LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(6).plusHours(11),
-              LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(9).plusHours(11))
-          .build();
-  public static final Voyage v200 =
-      new Voyage.Builder(new VoyageNumber("V200"), SampleLocations.TOKYO)
-          .addMovement(
+              LocalDateTime.now(java.time.Clock.systemUTC()).minusYears(1).plusMonths(3).plusDays(3).plusHours(6),
+              LocalDateTime.now(java.time.Clock.systemUTC()).minusYears(1).plusMonths(3).plusDays(5).plusHours(18))
+              LocalDateTime.now(java.time.Clock.systemUTC()).minusYears(1).plusMonths(3).plusDays(6).plusHours(11),
+              LocalDateTime.now(java.time.Clock.systemUTC()).minusYears(1).plusMonths(3).plusDays(9).plusHours(11))
+              LocalDateTime.now(java.time.Clock.systemUTC()).minusYears(1).plusMonths(3).plusDays(6).plusHours(14),
+              LocalDateTime.now(java.time.Clock.systemUTC()).minusYears(1).plusMonths(3).plusDays(8).plusHours(7))
+              LocalDateTime.now(java.time.Clock.systemUTC()).minusYears(1).plusMonths(3).plusDays(10).plusHours(21),
+              LocalDateTime.now(java.time.Clock.systemUTC()).minusYears(1).plusMonths(3).plusDays(14).plusHours(2))
+              LocalDateTime.now(java.time.Clock.systemUTC()).minusYears(1).plusMonths(3).plusDays(14).plusHours(1),
+              LocalDateTime.now(java.time.Clock.systemUTC()).minusYears(1).plusMonths(3).plusDays(16).plusHours(23))
+              LocalDateTime.now(java.time.Clock.systemUTC()).minusYears(1).plusMonths(3).plusDays(8).plusHours(8),
+              LocalDateTime.now(java.time.Clock.systemUTC()).minusYears(1).plusMonths(3).plusDays(11).plusHours(16))
+              LocalDateTime.now(java.time.Clock.systemUTC()).minusYears(1).plusMonths(3).plusDays(11).plusHours(4),
+              LocalDateTime.now(java.time.Clock.systemUTC()).minusYears(1).plusMonths(3).plusDays(12).plusHours(17))
+              LocalDateTime.now(java.time.Clock.systemUTC()).minusYears(1).plusMonths(3).plusDays(14).plusHours(9),
+              LocalDateTime.now(java.time.Clock.systemUTC()).minusYears(1).plusMonths(3).plusDays(18).plusHours(10))
+              LocalDateTime.now(java.time.Clock.systemUTC()).minusYears(1).plusMonths(3).plusDays(19).plusHours(17),
+              LocalDateTime.now(java.time.Clock.systemUTC()).minusYears(1).plusMonths(3).plusDays(21).plusHours(4))
+              LocalDateTime.now(java.time.Clock.systemUTC()).minusYears(1).plusMonths(3).plusDays(14).plusHours(9),
+              LocalDateTime.now(java.time.Clock.systemUTC()).minusYears(1).plusMonths(3).plusDays(15).plusHours(18))
+              LocalDateTime.now(java.time.Clock.systemUTC()).minusYears(1).plusMonths(3).plusDays(15).plusHours(11),
+              LocalDateTime.now(java.time.Clock.systemUTC()).minusYears(1).plusMonths(3).plusDays(16).plusHours(16))
+              LocalDateTime.now(java.time.Clock.systemUTC()).minusYears(1).plusMonths(3).plusDays(20).plusHours(18),
+              LocalDateTime.now(java.time.Clock.systemUTC()).minusYears(1).plusMonths(3).plusDays(22).plusHours(9))
               SampleLocations.NEWYORK,
               LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(6).plusHours(14),
               LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(8).plusHours(7))
@@ -85,34 +98,59 @@ public class SampleVoyages {
               LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(20).plusHours(18),
               LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(22).plusHours(9))
           .build();
-  /**
-   * Voyage number 0100S (by ship)
-   *
-   * <p>Hongkong - Hangzou - Tokyo - Melbourne - New York
-   */
-  public static final Voyage HONGKONG_TO_NEW_YORK =
-      new Voyage.Builder(new VoyageNumber("0100S"), SampleLocations.HONGKONG)
-          .addMovement(
-              SampleLocations.HANGZOU,
-              LocalDateTime.now().minusYears(1).plusMonths(10).plusDays(1).plusHours(12),
-              LocalDateTime.now()
+              LocalDateTime.now(java.time.Clock.systemUTC()).minusYears(1).plusMonths(10).plusDays(1).plusHours(12),
+              LocalDateTime.now(java.time.Clock.systemUTC())
+                  .minusYears(1)
+                  .plusMonths(10)
+                  .plusDays(3)
+                  .plusHours(14)
+                  .plusMinutes(30))
+              LocalDateTime.now(java.time.Clock.systemUTC()).minusYears(1).plusMonths(10).plusDays(4).plusHours(21),
+              LocalDateTime.now(java.time.Clock.systemUTC())
+                  .minusYears(1)
+                  .plusMonths(10)
+                  .plusDays(6)
+                  .plusHours(6)
+                  .plusMinutes(15))
+              LocalDateTime.now(java.time.Clock.systemUTC()).minusYears(1).plusMonths(10).plusDays(9).plusHours(11),
+              LocalDateTime.now(java.time.Clock.systemUTC())
+                  .minusYears(1)
+                  .plusMonths(10)
+                  .plusDays(12)
+                  .plusHours(11)
+                  .plusMinutes(30))
+              LocalDateTime.now(java.time.Clock.systemUTC()).minusYears(1).plusMonths(10).plusDays(14).plusHours(12),
+              LocalDateTime.now(java.time.Clock.systemUTC())
+                  .minusYears(1)
+                  .plusMonths(10)
+                  .plusDays(23)
+                  .plusHours(23)
+                  .plusMinutes(10))
                   .minusYears(1)
                   .plusMonths(10)
                   .plusDays(3)
                   .plusHours(14)
                   .plusMinutes(30))
           .addMovement(
-              SampleLocations.TOKYO,
-              LocalDateTime.now().minusYears(1).plusMonths(10).plusDays(4).plusHours(21),
-              LocalDateTime.now()
+              LocalDateTime.now(java.time.Clock.systemUTC()).minusYears(1).plusMonths(10).plusDays(24).plusHours(7),
+              LocalDateTime.now(java.time.Clock.systemUTC())
                   .minusYears(1)
                   .plusMonths(10)
-                  .plusDays(6)
-                  .plusHours(6)
-                  .plusMinutes(15))
-          .addMovement(
-              SampleLocations.MELBOURNE,
-              LocalDateTime.now().minusYears(1).plusMonths(10).plusDays(9).plusHours(11),
+                  .plusDays(24)
+                  .plusHours(17)
+                  .plusMinutes(45))
+              LocalDateTime.now(java.time.Clock.systemUTC())
+                  .minusYears(1)
+                  .plusMonths(10)
+                  .plusDays(24)
+                  .plusHours(21)
+                  .plusMinutes(25),
+              LocalDateTime.now(java.time.Clock.systemUTC())
+                  .minusYears(1)
+                  .plusMonths(10)
+                  .plusDays(25)
+                  .plusHours(19)
+                  .plusMinutes(30))
               LocalDateTime.now()
                   .minusYears(1)
                   .plusMonths(10)
@@ -120,27 +158,43 @@ public class SampleVoyages {
                   .plusHours(11)
                   .plusMinutes(30))
           .addMovement(
-              SampleLocations.NEWYORK,
-              LocalDateTime.now().minusYears(1).plusMonths(10).plusDays(14).plusHours(12),
-              LocalDateTime.now()
+              LocalDateTime.now(java.time.Clock.systemUTC())
                   .minusYears(1)
                   .plusMonths(10)
-                  .plusDays(23)
-                  .plusHours(23)
-                  .plusMinutes(10))
-          .build();
-  /**
-   * Voyage number 0200T (by train)
-   *
-   * <p>New York - Chicago - Dallas
-   */
-  public static final Voyage NEW_YORK_TO_DALLAS =
-      new Voyage.Builder(new VoyageNumber("0200T"), SampleLocations.NEWYORK)
-          .addMovement(
-              SampleLocations.CHICAGO,
-              LocalDateTime.now().minusYears(1).plusMonths(10).plusDays(24).plusHours(7),
-              LocalDateTime.now()
+                  .plusDays(29)
+                  .plusHours(3)
+                  .plusMinutes(30),
+              LocalDateTime.now(java.time.Clock.systemUTC()).minusYears(1).plusMonths(10).plusDays(31).plusHours(14))
+              LocalDateTime.now(java.time.Clock.systemUTC())
                   .minusYears(1)
+                  .plusMonths(11)
+                  .plusDays(1)
+                  .plusHours(15)
+                  .plusMinutes(20),
+              LocalDateTime.now(java.time.Clock.systemUTC())
+                  .minusYears(1)
+                  .plusMonths(11)
+                  .plusDays(1)
+                  .plusHours(18)
+                  .plusMinutes(40))
+              LocalDateTime.now(java.time.Clock.systemUTC()).minusYears(1).plusMonths(11).plusDays(2).plusHours(9),
+              LocalDateTime.now(java.time.Clock.systemUTC())
+                  .minusYears(1)
+                  .plusMonths(11)
+                  .plusDays(2)
+                  .plusHours(11)
+              LocalDateTime.now(java.time.Clock.systemUTC())
+                  .minusYears(1)
+                  .plusMonths(10)
+                  .plusDays(29)
+                  .plusHours(3)
+                  .plusMinutes(30),
+              LocalDateTime.now(java.time.Clock.systemUTC())
+                  .minusYears(1)
+                  .plusMonths(11)
+                  .plusDays(5)
+                  .plusHours(15)
+                  .plusMinutes(45))
                   .plusMonths(10)
                   .plusDays(24)
                   .plusHours(17)
@@ -264,13 +318,7 @@ public class SampleVoyages {
                   .minusYears(1)
                   .plusMonths(11)
                   .plusDays(28)
-                  .plusHours(13)
-                  .plusMinutes(37))
-          .build();
-
-  public static final Map<VoyageNumber, Voyage> ALL = new HashMap<>();
-
-  static {
+  public static final Map<VoyageNumber, Voyage> ALL = Collections.unmodifiableMap(new HashMap<>());
     for (Field field : SampleVoyages.class.getDeclaredFields()) {
       if (field.getType().equals(Voyage.class)) {
         try {
@@ -278,13 +326,6 @@ public class SampleVoyages {
           ALL.put(voyage.getVoyageNumber(), voyage);
         } catch (IllegalAccessException e) {
           throw new RuntimeException(e);
-        }
-      }
-    }
-  }
-
-  private static Voyage createVoyage(String id, Location from, Location to) {
-    return new Voyage(
         new VoyageNumber(id),
         new Schedule(
             Collections.singletonList(

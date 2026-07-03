@@ -60,13 +60,7 @@ public class GraphTraversalService {
 
     for (int i = 0; i < candidateCount; i++) {
       allVertices = getRandomChunkOfLocations(allVertices);
-      List<TransitEdge> transitEdges = new ArrayList<>(allVertices.size() - 1);
-      String fromUnLocode = originUnLocode;
-      LocalDateTime date = LocalDateTime.now();
-
-      for (int j = 0; j <= allVertices.size(); ++j) {
-        LocalDateTime fromDate = nextDate(date);
-        LocalDateTime toDate = nextDate(fromDate);
+      LocalDateTime date = LocalDateTime.now(java.time.Clock.systemUTC());
         String toUnLocode = (j >= allVertices.size() ? destinationUnLocode : allVertices.get(j));
         transitEdges.add(
             new TransitEdge(

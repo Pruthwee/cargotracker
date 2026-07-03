@@ -77,16 +77,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @TestMethodOrder(OrderAnnotation.class)
 public class BookingServiceTest {
   private static TrackingId trackingId;
-  private static List<Itinerary> candidates;
-  private static LocalDate deadline;
-  private static Itinerary assigned;
-
-  @Inject private BookingService bookingService;
-  @PersistenceContext private EntityManager entityManager;
-
-  @Deployment
-  public static WebArchive createDeployment() {
-
+  private TrackingId trackingId;
+  private List<Itinerary> candidates;
+  private LocalDate deadline;
+  private Itinerary assigned;
     String launch = System.getProperty("arquillian.launch", "payara");
     String webXml = launch.equals("openliberty") ? "test-liberty-web.xml" : "test-web.xml";
     String[] dependencies = launch.equals("openliberty") ?

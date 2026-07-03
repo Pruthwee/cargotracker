@@ -82,13 +82,17 @@
     <!-- Test dependencies -->
     <dependency>
       <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>s3</artifactId>
+      <version>2.25.27</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest</artifactId>
-      <scope>test</scope>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>sqs</artifactId>
+      <version>2.25.27</version>
     </dependency>
     <dependency>
       <groupId>org.assertj</groupId>
@@ -102,12 +106,10 @@
       <artifactId>arquillian-junit5-container</artifactId>
       <scope>test</scope>
     </dependency>
-    <!-- Resolvers are needed in the Arquillian tests. This is used for adding all
-    the runtime dependencies inside a testing war. -->
     <dependency>
-      <groupId>org.jboss.shrinkwrap.resolver</groupId>
-      <artifactId>shrinkwrap-resolver-impl-maven</artifactId>
-      <scope>test</scope>
+      <groupId>io.lettuce</groupId>
+      <artifactId>lettuce-core</artifactId>
+      <version>6.3.2.RELEASE</version>
     </dependency>
     <dependency>
       <groupId>org.jboss.arquillian.protocol</groupId>
@@ -308,9 +310,6 @@
                   <target>
                     <replace file="${project.build.directory}/glassfish7/glassfish/domains/domain1/config/domain.xml" token="&quot;8080&quot;" value="&quot;9090&quot;"/>
                   </target>
-                </configuration>
-                <goals>
-                  <goal>run</goal>
                 </goals>
               </execution>
             </executions>

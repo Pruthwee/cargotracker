@@ -1,13 +1,15 @@
 package org.eclipse.cargotracker.interfaces.handling.file;
 
-import java.io.File;
-import java.io.RandomAccessFile;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
-import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import jakarta.batch.api.chunk.AbstractItemReader;
 import jakarta.batch.runtime.context.JobContext;
 import jakarta.enterprise.context.Dependent;
@@ -19,71 +21,97 @@ import org.eclipse.cargotracker.domain.model.handling.HandlingEvent;
 import org.eclipse.cargotracker.domain.model.location.UnLocode;
 import org.eclipse.cargotracker.domain.model.voyage.VoyageNumber;
 import org.eclipse.cargotracker.interfaces.handling.HandlingEventRegistrationAttempt;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
+import software.amazon.awssdk.services.s3.model.S3Object;
 
 @Dependent
 @Named("EventItemReader")
 public class EventItemReader extends AbstractItemReader {
 
-  private static final String UPLOAD_DIRECTORY = "upload_directory";
+  private static final String UPLOAD_BUCKET = "upload_bucket";
 
   @Inject private Logger logger;
+  @Inject private S3Client s3Client;
 
   @Inject private JobContext jobContext;
   private EventFilesCheckpoint checkpoint;
-  private RandomAccessFile currentFile;
+  private BufferedReader currentFileReader;
+  private String currentS3Key;
 
   @Override
   public void open(Serializable checkpoint) throws Exception {
-    File uploadDirectory = new File(jobContext.getProperties().getProperty(UPLOAD_DIRECTORY));
+    String bucketName = jobContext.getProperties().getProperty(UPLOAD_BUCKET);
 
     if (checkpoint == null) {
       this.checkpoint = new EventFilesCheckpoint();
-      logger.log(Level.INFO, "Scanning upload directory: {0}", uploadDirectory);
+      logger.log(Level.INFO, "Scanning S3 bucket: {0}", bucketName);
 
-      if (!uploadDirectory.exists()) {
-        logger.log(Level.INFO, "Upload directory does not exist, creating it");
-        uploadDirectory.mkdirs();
-      } else {
-        this.checkpoint.setFiles(Arrays.asList(uploadDirectory.listFiles()));
-      }
+      ListObjectsV2Response listResponse = s3Client.listObjectsV2(
+          ListObjectsV2Request.builder().bucket(bucketName).build());
+      
+      List<String> keys = listResponse.contents().stream()
+          .map(S3Object::key)
+          .collect(Collectors.toList());
+      
+      this.checkpoint.setFiles(keys);
     } else {
       logger.log(Level.INFO, "Starting from previous checkpoint");
       this.checkpoint = (EventFilesCheckpoint) checkpoint;
     }
 
-    File file = this.checkpoint.currentFile();
+    String key = this.checkpoint.currentFile();
 
-    if (file == null) {
+    if (key == null) {
       logger.log(Level.INFO, "No files to process");
-      currentFile = null;
+      currentFileReader = null;
     } else {
-      currentFile = new RandomAccessFile(file, "r");
-      logger.log(Level.INFO, "Processing file: {0}", file);
-      currentFile.seek(this.checkpoint.getFilePointer());
+      openS3File(bucketName, key);
     }
+  }
+
+  private void openS3File(String bucketName, String key) throws IOException {
+    GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+        .bucket(bucketName)
+        .key(key)
+        .build();
+    
+    ResponseInputStream<?> s3InputStream = s3Client.getObject(getObjectRequest);
+    this.currentFileReader = new BufferedReader(new InputStreamReader(s3InputStream));
+    this.currentS3Key = key;
+    logger.log(Level.INFO, "Processing S3 object: {0}", key);
   }
 
   @Override
   public Object readItem() throws Exception {
-    if (currentFile != null) {
-      String line = currentFile.readLine();
+    if (currentFileReader != null) {
+      String line = currentFileReader.readLine();
 
       if (line != null) {
-        this.checkpoint.setFilePointer(currentFile.getFilePointer());
+        this.checkpoint.setFilePointer(0); 
         return parseLine(line);
       } else {
-        logger.log(
-            Level.INFO, "Finished processing file, deleting: {0}", this.checkpoint.currentFile());
-        currentFile.close();
-        this.checkpoint.currentFile().delete();
-        File nextFile = this.checkpoint.nextFile();
+        String key = this.checkpoint.currentFile();
+        String bucketName = jobContext.getProperties().getProperty(UPLOAD_BUCKET);
+        logger.log(Level.INFO, "Finished processing S3 object, deleting: {0}", key);
+        currentFileReader.close();
+        
+        s3Client.deleteObject(DeleteObjectRequest.builder()
+            .bucket(bucketName)
+            .key(key)
+            .build());
 
-        if (nextFile == null) {
+        String nextKey = this.checkpoint.nextFile();
+
+        if (nextKey == null) {
           logger.log(Level.INFO, "No more files to process");
           return null;
         } else {
-          currentFile = new RandomAccessFile(nextFile, "r");
-          logger.log(Level.INFO, "Processing file: {0}", nextFile);
+          openS3File(bucketName, nextKey);
           return readItem();
         }
       }
@@ -113,13 +141,8 @@ public class EventItemReader extends AbstractItemReader {
       trackingId = new TrackingId(result[1]);
     } catch (NullPointerException e) {
       throw new EventLineParseException("Cannot parse tracking ID", e, line);
-    }
-
-    VoyageNumber voyageNumber = null;
-
-    try {
-      if (!result[2].isEmpty()) {
-        voyageNumber = new VoyageNumber(result[2]);
+        new HandlingEventRegistrationAttempt(
+            LocalDateTime.now(java.time.Clock.systemUTC()), completionTime, trackingId, voyageNumber, eventType, unLocode);
       }
     } catch (NullPointerException e) {
       throw new EventLineParseException("Cannot parse voyage number", e, line);

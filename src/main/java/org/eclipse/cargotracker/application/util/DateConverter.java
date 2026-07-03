@@ -11,18 +11,11 @@ public class DateConverter {
   public static final String DATE_TIME_FORMAT = "M/d/yyyy h:m a";
 
   private static final DateTimeFormatter DATE_FORMATTER =
-      DateTimeFormatter.ofPattern(DATE_FORMAT).withZone(ZoneId.systemDefault());
+      DateTimeFormatter.ofPattern(DATE_FORMAT).withZone(ZoneId.of("UTC"));
+  private static final DateTimeFormatter DATE_TIME_FORMATTER = 
+      DateTimeFormatter.ofPattern(DATE_TIME_FORMAT).withZone(ZoneId.of("UTC"));
 
-  private static final DateTimeFormatter DATE_TIME_FORMATTER =
-      DateTimeFormatter.ofPattern(DATE_TIME_FORMAT).withZone(ZoneId.systemDefault());
-
-  private DateConverter() {}
-
-  public static LocalDate toDate(String date) {
-    return LocalDate.parse(date, DATE_FORMATTER);
-  }
-
-  public static LocalDateTime toDateTime(String datetime) {
+  public static LocalDateTime parse(String datetime) {
     return LocalDateTime.parse(datetime, DATE_TIME_FORMATTER);
   }
 

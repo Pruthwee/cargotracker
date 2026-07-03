@@ -169,13 +169,7 @@ public class EventLogger implements Serializable {
     if (!validate(event.getOldStep())) {
       return event.getOldStep();
     }
-
-    if ("dateTab".equals(event.getNewStep())) {
-      completionTime = LocalDateTime.now();
-    }
-
-    return event.getNewStep();
-  }
+      completionTime = LocalDateTime.now(java.time.Clock.systemUTC());
 
   private boolean validate(final String step) {
     if ("voyageTab".equals(step) && eventType.requiresVoyage() && voyageNumber == null) {
@@ -195,13 +189,7 @@ public class EventLogger implements Serializable {
     VoyageNumber voyage;
 
     TrackingId trackingId = new TrackingId(this.trackingId);
-    UnLocode location = new UnLocode(this.location);
-
-    if (eventType.requiresVoyage()) {
-      voyage = new VoyageNumber(voyageNumber);
-    } else {
-      voyage = null;
-    }
+            LocalDateTime.now(java.time.Clock.systemUTC()), completionTime, trackingId, voyage, eventType, location);
 
     HandlingEventRegistrationAttempt attempt =
         new HandlingEventRegistrationAttempt(

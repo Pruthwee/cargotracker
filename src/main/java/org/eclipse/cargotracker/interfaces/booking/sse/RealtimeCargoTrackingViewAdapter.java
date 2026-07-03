@@ -5,14 +5,17 @@ import java.util.Map;
 import org.eclipse.cargotracker.domain.model.cargo.Cargo;
 import org.eclipse.cargotracker.domain.model.cargo.RoutingStatus;
 import org.eclipse.cargotracker.domain.model.cargo.TransportStatus;
+import io.lettuce.core.RedisClient;
+import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.api.sync.RedisCommands;
 
 /** View adapter for displaying a cargo in a realtime tracking context. */
 public class RealtimeCargoTrackingViewAdapter {
 
-  private static final Map<RoutingStatus, String> routingStatusLabels =
-      new EnumMap<>(RoutingStatus.class);
-  private static final Map<TransportStatus, String> transportStatusLabels =
-      new EnumMap<>(TransportStatus.class);
+  private static final String REDIS_HOST = System.getenv("REDIS_HOST") != null ? System.getenv("REDIS_HOST") : "localhost";
+  private static final RedisClient redisClient = RedisClient.create("redis://" + REDIS_HOST);
+  private static final StatefulRedisConnection<String, String> connection = redisClient.connect();
+  private static final RedisCommands<String, String> syncCommands = connection.sync();
 
   private final Cargo cargo;
 
@@ -25,7 +28,12 @@ public class RealtimeCargoTrackingViewAdapter {
   }
 
   public String getRoutingStatus() {
-    return routingStatusLabels.get(cargo.getDelivery().getRoutingStatus());
+    String label = syncCommands.get("label:routing:" + cargo.getDelivery().getRoutingStatus());
+    if (label == null) {
+      label = getRoutingStatusLabel(cargo.getDelivery().getRoutingStatus());
+      syncCommands.setex("label:routing:" + cargo.getDelivery().getRoutingStatus(), 3600, label);
+    }
+    return label;
   }
 
   public boolean isMisdirected() {
@@ -33,7 +41,12 @@ public class RealtimeCargoTrackingViewAdapter {
   }
 
   public String getTransportStatus() {
-    return transportStatusLabels.get(cargo.getDelivery().getTransportStatus());
+    String label = syncCommands.get("label:transport:" + cargo.getDelivery().getTransportStatus());
+    if (label == null) {
+      label = getTransportStatusLabel(cargo.getDelivery().getTransportStatus());
+      syncCommands.setex("label:transport:" + cargo.getDelivery().getTransportStatus(), 3600, label);
+    }
+    return label;
   }
 
   public boolean isAtDestination() {
@@ -72,15 +85,23 @@ public class RealtimeCargoTrackingViewAdapter {
     return cargo.getDelivery().getTransportStatus().toString();
   }
 
-  static {
-    routingStatusLabels.put(RoutingStatus.NOT_ROUTED, "Not routed");
-    routingStatusLabels.put(RoutingStatus.ROUTED, "Routed");
-    routingStatusLabels.put(RoutingStatus.MISROUTED, "Misrouted");
+  private String getRoutingStatusLabel(RoutingStatus status) {
+    switch (status) {
+      case NOT_ROUTED: return "Not routed";
+      case ROUTED: return "Routed";
+      case MISROUTED: return "Misrouted";
+      default: return status.toString();
+    }
+  }
 
-    transportStatusLabels.put(TransportStatus.NOT_RECEIVED, "Not received");
-    transportStatusLabels.put(TransportStatus.IN_PORT, "In port");
-    transportStatusLabels.put(TransportStatus.ONBOARD_CARRIER, "Onboard carrier");
-    transportStatusLabels.put(TransportStatus.CLAIMED, "Claimed");
-    transportStatusLabels.put(TransportStatus.UNKNOWN, "Unknown");
+  private String getTransportStatusLabel(TransportStatus status) {
+    switch (status) {
+      case NOT_RECEIVED: return "Not received";
+      case IN_PORT: return "In port";
+      case ONBOARD_CARRIER: return "Onboard carrier";
+      case CLAIMED: return "Claimed";
+      case UNKNOWN: return "Unknown";
+      default: return status.toString();
+    }
   }
 }
