@@ -23,14 +23,14 @@
     <url>https://github.com/eclipse-ee4j/cargotracker/issues</url>
   </issueManagement>
   <properties>
-    <maven.compiler.release>11</maven.compiler.release>
-    <jakartaee.api.version>10.0.0</jakartaee.api.version>
-    <surefire.version>3.5.2</surefire.version>
-    <dependency.plugin.version>3.8.1</dependency.plugin.version>
-    <cargo.plugin.version>1.10.18</cargo.plugin.version>
-    <h2.version>2.3.232</h2.version>
-    <payara.version>6.2025.3</payara.version>
+    <maven.compiler.release>21</maven.compiler.release>
     <payara.arquillian.adapter.version>3.1</payara.arquillian.adapter.version>
+    <jakartaee.api.version>10.0.0</jakartaee.api.version>
+    <h2.version>2.2.224</h2.version>
+    <payara.version>6.2023.10</payara.version>
+    <cargo.plugin.version>1.10.0</cargo.plugin.version>
+    <surefire.version>3.2.5</surefire.version>
+    <dependency.plugin.version>3.6.1</dependency.plugin.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>    
   </properties>
   <dependencyManagement>
@@ -65,6 +65,7 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
+      <version>3.14.0</version>
     </dependency>
     <dependency>
       <groupId>org.primefaces</groupId>
@@ -88,6 +89,7 @@
     <dependency>
       <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest</artifactId>
+      <version>2.2</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -118,6 +120,7 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-simple</artifactId>
+      <version>2.0.12</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -130,6 +133,14 @@
         <version>3.4.0</version>
         <configuration>
           <filteringDeploymentDescriptors>true</filteringDeploymentDescriptors>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.11.0</version>
+        <configuration>
+          <release>21</release>
         </configuration>
       </plugin>
     </plugins>
