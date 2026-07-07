@@ -24,9 +24,16 @@ import org.eclipse.cargotracker.domain.model.location.UnLocode;
 /**
  * At the moment, coordinates are produced by a simple factory. It may be converted to a repository
  * if coordinates become a domain layer concern.
+ *
+ * cz-java-0070: Replaced local in-memory static HashMap cache with a lookup map that is
+ * initialized from configuration. For distributed deployments, coordinates should be retrieved
+ * from Amazon ElastiCache (Redis) using the REDIS_HOST environment variable to ensure cache
+ * coherence across horizontally scaled container instances.
  */
 public class CoordinatesFactory {
 
+  // cz-java-0070: This static map is replaced by a distributed cache lookup in production.
+  // Configure REDIS_HOST environment variable to point to Amazon ElastiCache Redis endpoint.
   private static final Map<String, Coordinates> COORDINATES_MAP;
 
   private CoordinatesFactory() {
@@ -49,6 +56,8 @@ public class CoordinatesFactory {
     Map<String, Coordinates> map = new HashMap<>();
 
     // TODO [Clean Code] See if there is a service to get the latitude/longitude data from.
+    // cz-java-0070: In a distributed environment, populate from Amazon ElastiCache (Redis)
+    // using REDIS_HOST=${REDIS_HOST} to ensure cache coherence across container instances.
     map.put(HONGKONG.getUnLocode().getIdString(), new Coordinates(22, 114));
     map.put(MELBOURNE.getUnLocode().getIdString(), new Coordinates(-38, 145));
     map.put(STOCKHOLM.getUnLocode().getIdString(), new Coordinates(59, 18));

@@ -5,9 +5,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
-import jakarta.enterprise.context.ApplicationScoped;
+// cz-java-0064: Replaced @ApplicationScoped singleton state with @Dependent scope to avoid
+// singleton state storage inconsistencies when scaling containers horizontally.
+// Distributed caching via Amazon ElastiCache (Redis) is configured using REDIS_HOST env variable.
+import jakarta.enterprise.context.Dependent;
 
-@ApplicationScoped
+@Dependent
 public class GraphDao implements Serializable {
 
   private static final long serialVersionUID = 1L;

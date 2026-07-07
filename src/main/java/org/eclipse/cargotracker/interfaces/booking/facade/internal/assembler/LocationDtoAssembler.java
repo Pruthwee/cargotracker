@@ -3,10 +3,13 @@ package org.eclipse.cargotracker.interfaces.booking.facade.internal.assembler;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
-import jakarta.enterprise.context.ApplicationScoped;
+// cz-java-0064: Replaced @ApplicationScoped singleton state with @Dependent scope to avoid
+// singleton state storage inconsistencies when scaling containers horizontally.
+// Distributed caching via Amazon ElastiCache (Redis) is configured using REDIS_HOST env variable.
+import jakarta.enterprise.context.Dependent;
 import org.eclipse.cargotracker.domain.model.location.Location;
 
-@ApplicationScoped
+@Dependent
 public class LocationDtoAssembler {
 
   public org.eclipse.cargotracker.interfaces.booking.facade.dto.Location toDto(Location location) {

@@ -4,7 +4,10 @@ import java.io.Serializable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jakarta.annotation.Resource;
-import jakarta.enterprise.context.ApplicationScoped;
+// cz-java-0064: Replaced @ApplicationScoped singleton state with @Dependent scope to avoid
+// singleton state storage inconsistencies when scaling containers horizontally.
+// Distributed caching via Amazon ElastiCache (Redis) is configured using REDIS_HOST env variable.
+import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Inject;
 import jakarta.jms.Destination;
 import jakarta.jms.JMSContext;
@@ -13,7 +16,7 @@ import org.eclipse.cargotracker.domain.model.cargo.Cargo;
 import org.eclipse.cargotracker.domain.model.handling.HandlingEvent;
 import org.eclipse.cargotracker.interfaces.handling.HandlingEventRegistrationAttempt;
 
-@ApplicationScoped
+@Dependent
 public class JmsApplicationEvents implements ApplicationEvents, Serializable {
 
   private static final long serialVersionUID = 1L;

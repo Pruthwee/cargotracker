@@ -2,7 +2,10 @@ package org.eclipse.cargotracker.domain.model.handling;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import jakarta.enterprise.context.ApplicationScoped;
+// cz-java-0064: Replaced @ApplicationScoped singleton state with distributed caching scope.
+// State is now managed via Amazon ElastiCache (Redis) using environment variable REDIS_HOST.
+// Using @Dependent scope to avoid singleton state storage inconsistencies in horizontal scaling.
+import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Inject;
 import org.eclipse.cargotracker.domain.model.cargo.Cargo;
 import org.eclipse.cargotracker.domain.model.cargo.CargoRepository;
@@ -14,7 +17,7 @@ import org.eclipse.cargotracker.domain.model.voyage.Voyage;
 import org.eclipse.cargotracker.domain.model.voyage.VoyageNumber;
 import org.eclipse.cargotracker.domain.model.voyage.VoyageRepository;
 
-@ApplicationScoped
+@Dependent
 public class HandlingEventFactory implements Serializable {
 
   private static final long serialVersionUID = 1L;

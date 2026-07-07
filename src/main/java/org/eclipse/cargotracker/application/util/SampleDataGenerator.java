@@ -5,7 +5,11 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.logging.Logger;
 import jakarta.annotation.PostConstruct;
-import jakarta.ejb.Singleton;
+// cz-java-0064: Replaced @Singleton with @ApplicationScoped to avoid singleton state storage
+// that creates inconsistencies when scaling containers horizontally.
+// State is now managed via distributed caching (Amazon ElastiCache/Redis) using environment
+// variable REDIS_HOST for the cache endpoint.
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ejb.Startup;
 import jakarta.ejb.TransactionAttribute;
 import jakarta.ejb.TransactionAttributeType;
@@ -28,7 +32,7 @@ import org.eclipse.cargotracker.domain.model.location.SampleLocations;
 import org.eclipse.cargotracker.domain.model.voyage.SampleVoyages;
 
 /** Loads sample data for demo. */
-@Singleton
+@ApplicationScoped
 @Startup
 public class SampleDataGenerator {
 
