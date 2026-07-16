@@ -14,7 +14,8 @@ import org.eclipse.cargotracker.interfaces.booking.facade.dto.Leg;
 @ApplicationScoped
 public class CargoRouteDtoAssembler {
 
-  @Inject private LocationDtoAssembler locationDtoAssembler;
+  @Inject
+  private LocationDtoAssembler locationDtoAssembler;
 
   public CargoRoute toDto(Cargo cargo) {
     List<Leg> legs =

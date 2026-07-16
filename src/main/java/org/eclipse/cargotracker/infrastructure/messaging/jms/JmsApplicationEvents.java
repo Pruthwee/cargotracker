@@ -4,18 +4,11 @@ import java.io.Serializable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jakarta.annotation.Resource;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
-import jakarta.jms.Destination;
-import jakarta.jms.JMSContext;
-import org.eclipse.cargotracker.application.ApplicationEvents;
-import org.eclipse.cargotracker.domain.model.cargo.Cargo;
-import org.eclipse.cargotracker.domain.model.handling.HandlingEvent;
 import org.eclipse.cargotracker.interfaces.handling.HandlingEventRegistrationAttempt;
+import org.eclipse.cargotracker.domain.model.handling.HandlingEvent;
 
 @ApplicationScoped
 public class JmsApplicationEvents implements ApplicationEvents, Serializable {
-
   private static final long serialVersionUID = 1L;
   private static final int LOW_PRIORITY = 0;
   @Inject JMSContext jmsContext;

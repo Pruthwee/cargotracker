@@ -16,7 +16,8 @@ import org.eclipse.cargotracker.interfaces.booking.facade.dto.TrackingEvents;
 @ApplicationScoped
 public class CargoStatusDtoAssembler {
 
-  @Inject private TrackingEventsDtoAssembler assembler;
+  @Inject
+  private TrackingEventsDtoAssembler assembler;
 
   public CargoStatus toDto(Cargo cargo, List<HandlingEvent> handlingEvents) {
     List<TrackingEvents> trackingEvents;

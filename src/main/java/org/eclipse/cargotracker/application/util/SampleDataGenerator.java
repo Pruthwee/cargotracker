@@ -27,7 +27,6 @@ import org.eclipse.cargotracker.domain.model.handling.HandlingHistory;
 import org.eclipse.cargotracker.domain.model.location.SampleLocations;
 import org.eclipse.cargotracker.domain.model.voyage.SampleVoyages;
 
-/** Loads sample data for demo. */
 @Singleton
 @Startup
 public class SampleDataGenerator {

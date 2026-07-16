@@ -5,15 +5,15 @@ import java.util.Map;
 import org.eclipse.cargotracker.domain.model.cargo.Cargo;
 import org.eclipse.cargotracker.domain.model.cargo.RoutingStatus;
 import org.eclipse.cargotracker.domain.model.cargo.TransportStatus;
+import org.eclipse.cargotracker.domain.model.location.Location;
 
 /** View adapter for displaying a cargo in a realtime tracking context. */
 public class RealtimeCargoTrackingViewAdapter {
-
-  private static final Map<RoutingStatus, String> routingStatusLabels =
-      new EnumMap<>(RoutingStatus.class);
-  private static final Map<TransportStatus, String> transportStatusLabels =
-      new EnumMap<>(TransportStatus.class);
-
+  private static final Map<RoutingStatus, String> routingStatusLabels = 
+      new java.util.concurrent.ConcurrentHashMap<>();
+  private static final Map<TransportStatus, String> transportStatusLabels = 
+      new java.util.concurrent.ConcurrentHashMap<>();
+  
   private final Cargo cargo;
 
   public RealtimeCargoTrackingViewAdapter(Cargo cargo) {
@@ -82,5 +82,21 @@ public class RealtimeCargoTrackingViewAdapter {
     transportStatusLabels.put(TransportStatus.ONBOARD_CARRIER, "Onboard carrier");
     transportStatusLabels.put(TransportStatus.CLAIMED, "Claimed");
     transportStatusLabels.put(TransportStatus.UNKNOWN, "Unknown");
+  }
+
+  public static class LocationViewAdapter {
+    private final Location location;
+
+    public LocationViewAdapter(Location location) {
+      this.location = location;
+    }
+
+    public String getUnLocode() {
+      return location.getUnLocode().getIdString();
+    }
+
+    public String getName() {
+      return location.getName();
+    }
   }
 }

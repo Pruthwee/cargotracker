@@ -11,7 +11,6 @@ import org.eclipse.cargotracker.domain.model.voyage.VoyageRepository;
 
 @ApplicationScoped
 public class JpaVoyageRepository implements VoyageRepository, Serializable {
-
   private static final long serialVersionUID = 1L;
 
   @PersistenceContext private EntityManager entityManager;

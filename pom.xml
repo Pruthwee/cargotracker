@@ -132,6 +132,14 @@
           <filteringDeploymentDescriptors>true</filteringDeploymentDescriptors>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.13.0</version>
+        <configuration>
+          <release>11</release>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
   <profiles>
@@ -329,6 +337,7 @@
         <db.driverClass>org.postgresql.ds.PGPoolingDataSource</db.driverClass>
         <!-- Pass in via command line. For example:
              ./mvnw clean package -Pcloud 
+                                  -DpostgreSqlJdbcUrl="jdbc:postgresql://host.docker.internal:5432/postgres" 
                                   -DpostgreSqlJdbcUrl="jdbc:postgresql://host.docker.internal:5432/postgres" 
                                   -DpostgreSqlUsername="postgres" -DpostgreSqlPassword="postgres"
         -->

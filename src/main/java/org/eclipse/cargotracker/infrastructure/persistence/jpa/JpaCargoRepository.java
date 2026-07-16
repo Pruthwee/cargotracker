@@ -18,7 +18,6 @@ import org.eclipse.cargotracker.infrastructure.events.cdi.CargoUpdated;
 
 @ApplicationScoped
 public class JpaCargoRepository implements CargoRepository, Serializable {
-
   private static final long serialVersionUID = 1L;
 
   @Inject private Logger logger;

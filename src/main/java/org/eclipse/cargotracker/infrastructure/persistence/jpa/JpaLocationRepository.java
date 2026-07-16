@@ -11,7 +11,6 @@ import org.eclipse.cargotracker.domain.model.location.UnLocode;
 
 @ApplicationScoped
 public class JpaLocationRepository implements LocationRepository, Serializable {
-
   private static final long serialVersionUID = 1L;
 
   @PersistenceContext private EntityManager entityManager;
