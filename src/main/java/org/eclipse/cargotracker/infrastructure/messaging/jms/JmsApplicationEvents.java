@@ -14,10 +14,9 @@ import org.eclipse.cargotracker.domain.model.handling.HandlingEvent;
 import org.eclipse.cargotracker.interfaces.handling.HandlingEventRegistrationAttempt;
 
 @ApplicationScoped
-public class JmsApplicationEvents implements ApplicationEvents, Serializable {
+public class JmsApplicationEvents implements ApplicationEvents {
+  private static final int LOW_PRIORITY = 4;
 
-  private static final long serialVersionUID = 1L;
-  private static final int LOW_PRIORITY = 0;
   @Inject JMSContext jmsContext;
 
   @Resource(lookup = "java:app/jms/CargoHandledQueue")

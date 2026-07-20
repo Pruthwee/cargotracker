@@ -1,4 +1,11 @@
 <html>
+<head>
+  <script>
+    window.__ENV__ = {
+      // Runtime configuration injected via ConfigMap and Init Container
+    };
+  </script>
+</head>
 <body>
   <p>DTOs for the booking client facade.</p>
   <p>DTOs are designed in a use case-driven fashion, closely related to the
@@ -18,8 +25,8 @@
     entire processing of the view (the Open Session In View pattern), otherwise
     an uninitialized part of the model could accidentally be accessed, causing
     an error. For example, if the UI layer were to receive a Cargo instance,
-    that could be navigated to access the Itinerary, iterate over the Legs of
-    the itinerary, access the Leg's CarrierMovement and then the
+    that could be navigated to access the Itinerary, iterate over the Legs of the
+    itinerary, access the Leg's CarrierMovement and then the
     CarrierMovement's Location and so on. In addition to effectively tying the
     UI layer and the rest of the application to the same JVM, letting the UI
     layer decide when to initialize data may be very inefficient. DTOs are a

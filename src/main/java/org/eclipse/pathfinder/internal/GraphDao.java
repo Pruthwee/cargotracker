@@ -5,13 +5,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
-import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.RequestScoped;
 
-@ApplicationScoped
+@RequestScoped
 public class GraphDao implements Serializable {
-
-  private static final long serialVersionUID = 1L;
-
   private final Random random = new Random();
 
   public List<String> listLocations() {

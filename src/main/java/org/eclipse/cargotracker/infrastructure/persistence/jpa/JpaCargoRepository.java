@@ -17,8 +17,7 @@ import org.eclipse.cargotracker.domain.model.cargo.TrackingId;
 import org.eclipse.cargotracker.infrastructure.events.cdi.CargoUpdated;
 
 @ApplicationScoped
-public class JpaCargoRepository implements CargoRepository, Serializable {
-
+public class JpaCargoRepository implements CargoRepository {
   private static final long serialVersionUID = 1L;
 
   @Inject private Logger logger;

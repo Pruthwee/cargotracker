@@ -7,11 +7,11 @@ import jakarta.persistence.PersistenceContext;
 import org.eclipse.cargotracker.domain.model.cargo.TrackingId;
 import org.eclipse.cargotracker.domain.model.handling.HandlingEvent;
 import org.eclipse.cargotracker.domain.model.handling.HandlingEventRepository;
+import org.eclipse.cargotracker.domain.model.handling.HandlingEvent.Type;
 import org.eclipse.cargotracker.domain.model.handling.HandlingHistory;
 
 @ApplicationScoped
-public class JpaHandlingEventRepository implements HandlingEventRepository, Serializable {
-
+public class JpaHandlingEventRepository implements HandlingEventRepository {
   private static final long serialVersionUID = 1L;
 
   @PersistenceContext private EntityManager entityManager;

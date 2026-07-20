@@ -11,8 +11,8 @@ import org.eclipse.cargotracker.interfaces.booking.facade.dto.TrackingEvents;
 public class TrackingEventsDtoAssembler {
 
   public TrackingEvents toDto(Cargo cargo, HandlingEvent handlingEvent) {
-    String location = locationFrom(handlingEvent);
     HandlingEvent.Type type = handlingEvent.getType();
+    String location = locationFrom(handlingEvent);
     String voyageNumber = voyageNumberFrom(handlingEvent);
     return new TrackingEvents(
         cargo.getItinerary().isExpected(handlingEvent),
@@ -43,7 +43,7 @@ public class TrackingEventsDtoAssembler {
 
   private String voyageNumberFrom(HandlingEvent handlingEvent) {
     Voyage voyage = handlingEvent.getVoyage();
-    return voyage.getVoyageNumber().getIdString();
+    return voyage == null ? "" : voyage.getVoyageNumber().getIdString();
   }
 
   private String locationFrom(HandlingEvent handlingEvent) {

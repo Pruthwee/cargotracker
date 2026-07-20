@@ -4,6 +4,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.faces.annotation.FacesConfig;
 
 /** Jakarta Faces configuration. * */
-@FacesConfig()
+@FacesConfig
 @ApplicationScoped
-public class FacesConfiguration {}
+public class FacesConfiguration {
+}

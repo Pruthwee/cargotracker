@@ -1,4 +1,11 @@
 <html>
+<head>
+  <script>
+    window.__ENV__ = {
+      // Runtime configuration injected via ConfigMap and Init Container
+    };
+  </script>
+</head>
 <body>
   <p>The domain model. This is the heart of the application. Each aggregate
     is contained in its own sub-package, along with the repository interface,

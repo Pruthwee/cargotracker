@@ -20,7 +20,6 @@ import org.eclipse.cargotracker.domain.model.cargo.Cargo;
 import org.eclipse.cargotracker.domain.model.cargo.CargoRepository;
 import org.eclipse.cargotracker.infrastructure.events.cdi.CargoUpdated;
 
-/** Sever-sent events service for tracking all cargo in real time. */
 @Singleton
 @Path("/cargo")
 public class RealtimeCargoTrackingService {

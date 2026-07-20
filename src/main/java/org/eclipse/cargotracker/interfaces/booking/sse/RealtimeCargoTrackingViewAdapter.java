@@ -2,6 +2,7 @@ package org.eclipse.cargotracker.interfaces.booking.sse;
 
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.eclipse.cargotracker.domain.model.cargo.Cargo;
 import org.eclipse.cargotracker.domain.model.cargo.RoutingStatus;
 import org.eclipse.cargotracker.domain.model.cargo.TransportStatus;
@@ -10,9 +11,9 @@ import org.eclipse.cargotracker.domain.model.cargo.TransportStatus;
 public class RealtimeCargoTrackingViewAdapter {
 
   private static final Map<RoutingStatus, String> routingStatusLabels =
-      new EnumMap<>(RoutingStatus.class);
+      new ConcurrentHashMap<>();
   private static final Map<TransportStatus, String> transportStatusLabels =
-      new EnumMap<>(TransportStatus.class);
+      new ConcurrentHashMap<>();
 
   private final Cargo cargo;
 

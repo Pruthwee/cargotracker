@@ -12,8 +12,8 @@ import jakarta.ejb.TransactionAttributeType;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
-import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.NoResultException;
 import org.eclipse.cargotracker.domain.model.cargo.Cargo;
 import org.eclipse.cargotracker.domain.model.cargo.Itinerary;
 import org.eclipse.cargotracker.domain.model.cargo.Leg;
@@ -27,11 +27,10 @@ import org.eclipse.cargotracker.domain.model.handling.HandlingHistory;
 import org.eclipse.cargotracker.domain.model.location.SampleLocations;
 import org.eclipse.cargotracker.domain.model.voyage.SampleVoyages;
 
-/** Loads sample data for demo. */
 @Singleton
 @Startup
 public class SampleDataGenerator {
-
+  
   @Inject private Logger logger;
 
   @PersistenceContext private EntityManager entityManager;
@@ -41,14 +40,13 @@ public class SampleDataGenerator {
   @PostConstruct
   @TransactionAttribute(TransactionAttributeType.REQUIRED)
   public void loadSampleData() {
-    if (!isSampleLoaded()) {
-      logger.info("Loading sample data.");
-      loadSampleLocations();
-      loadSampleVoyages();
-      loadSampleCargos();
-    } else {
-      logger.info("Sample data already loaded, skipping.");
+    if (isSampleLoaded()) {
+      return;
     }
+
+    loadSampleLocations();
+    loadSampleVoyages();
+    loadSampleCargos();
   }
 
   private boolean isSampleLoaded() {

@@ -18,6 +18,7 @@ import static org.eclipse.cargotracker.domain.model.location.SampleLocations.TOK
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.eclipse.cargotracker.domain.model.location.Location;
 import org.eclipse.cargotracker.domain.model.location.UnLocode;
 
@@ -27,7 +28,7 @@ import org.eclipse.cargotracker.domain.model.location.UnLocode;
  */
 public class CoordinatesFactory {
 
-  private static final Map<String, Coordinates> COORDINATES_MAP;
+  private static final Map<String, Coordinates> COORDINATES_MAP = new ConcurrentHashMap<>();
 
   private CoordinatesFactory() {
     /* Prevent instantiation. */
@@ -46,24 +47,20 @@ public class CoordinatesFactory {
   }
 
   static {
-    Map<String, Coordinates> map = new HashMap<>();
-
     // TODO [Clean Code] See if there is a service to get the latitude/longitude data from.
-    map.put(HONGKONG.getUnLocode().getIdString(), new Coordinates(22, 114));
-    map.put(MELBOURNE.getUnLocode().getIdString(), new Coordinates(-38, 145));
-    map.put(STOCKHOLM.getUnLocode().getIdString(), new Coordinates(59, 18));
-    map.put(HELSINKI.getUnLocode().getIdString(), new Coordinates(60, 25));
-    map.put(CHICAGO.getUnLocode().getIdString(), new Coordinates(42, -88));
-    map.put(TOKYO.getUnLocode().getIdString(), new Coordinates(36, 140));
-    map.put(HAMBURG.getUnLocode().getIdString(), new Coordinates(54, 10));
-    map.put(SHANGHAI.getUnLocode().getIdString(), new Coordinates(31, 121));
-    map.put(ROTTERDAM.getUnLocode().getIdString(), new Coordinates(52, 5));
-    map.put(GOTHENBURG.getUnLocode().getIdString(), new Coordinates(58, 12));
-    map.put(HANGZOU.getUnLocode().getIdString(), new Coordinates(30, 120));
-    map.put(NEWYORK.getUnLocode().getIdString(), new Coordinates(41, -74));
-    map.put(DALLAS.getUnLocode().getIdString(), new Coordinates(33, -97));
-    map.put(UNKNOWN.getUnLocode().getIdString(), new Coordinates(-90, 0)); // The South Pole.
-
-    COORDINATES_MAP = Collections.unmodifiableMap(map);
+    COORDINATES_MAP.put(HONGKONG.getUnLocode().getIdString(), new Coordinates(22, 114));
+    COORDINATES_MAP.put(MELBOURNE.getUnLocode().getIdString(), new Coordinates(-38, 145));
+    COORDINATES_MAP.put(STOCKHOLM.getUnLocode().getIdString(), new Coordinates(59, 18));
+    COORDINATES_MAP.put(HELSINKI.getUnLocode().getIdString(), new Coordinates(60, 25));
+    COORDINATES_MAP.put(CHICAGO.getUnLocode().getIdString(), new Coordinates(42, -88));
+    COORDINATES_MAP.put(TOKYO.getUnLocode().getIdString(), new Coordinates(36, 140));
+    COORDINATES_MAP.put(HAMBURG.getUnLocode().getIdString(), new Coordinates(54, 10));
+    COORDINATES_MAP.put(SHANGHAI.getUnLocode().getIdString(), new Coordinates(31, 121));
+    COORDINATES_MAP.put(ROTTERDAM.getUnLocode().getIdString(), new Coordinates(52, 5));
+    COORDINATES_MAP.put(GOTHENBURG.getUnLocode().getIdString(), new Coordinates(58, 12));
+    COORDINATES_MAP.put(HANGZOU.getUnLocode().getIdString(), new Coordinates(30, 120));
+    COORDINATES_MAP.put(NEWYORK.getUnLocode().getIdString(), new Coordinates(41, -74));
+    COORDINATES_MAP.put(DALLAS.getUnLocode().getIdString(), new Coordinates(33, -97));
+    COORDINATES_MAP.put(UNKNOWN.getUnLocode().getIdString(), new Coordinates(-90, 0)); // The South Pole.
   }
 }

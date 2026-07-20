@@ -7,9 +7,7 @@ import jakarta.enterprise.inject.Produces;
 import jakarta.enterprise.inject.spi.InjectionPoint;
 
 @ApplicationScoped
-public class LoggerProducer implements Serializable {
-
-  private static final long serialVersionUID = 1L;
+public class LoggerProducer {
 
   @Produces
   public Logger produceLogger(InjectionPoint injectionPoint) {

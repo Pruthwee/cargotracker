@@ -10,10 +10,10 @@ import org.glassfish.jersey.server.ServerProperties;
 @ApplicationPath("rest")
 public class RestConfiguration extends Application {
 
-  @Override
-  public Map<String, Object> getProperties() {
-    Map<String, Object> properties = new HashMap<String, Object>();
-    properties.put(ServerProperties.BV_SEND_ERROR_IN_RESPONSE, true);
-    return properties;
-  }
+    @Override
+    public Map<String, Object> getProperties() {
+        Map<String, Object> properties = new HashMap<>();
+        properties.put("jersey.config.beanValidation.sendErrorInResponse", true);
+        return properties;
+    }
 }

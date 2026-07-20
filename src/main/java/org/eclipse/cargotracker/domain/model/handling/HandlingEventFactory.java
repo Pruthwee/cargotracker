@@ -15,9 +15,7 @@ import org.eclipse.cargotracker.domain.model.voyage.VoyageNumber;
 import org.eclipse.cargotracker.domain.model.voyage.VoyageRepository;
 
 @ApplicationScoped
-public class HandlingEventFactory implements Serializable {
-
-  private static final long serialVersionUID = 1L;
+public class HandlingEventFactory {
 
   @Inject private CargoRepository cargoRepository;
   @Inject private VoyageRepository voyageRepository;
@@ -31,11 +29,10 @@ public class HandlingEventFactory implements Serializable {
    * @param unlocode United Nations Location Code for the location of the event
    * @param type type of event
    * @return A handling event.
-   * @throws UnknownVoyageException if there's no voyage with this number
-   * @throws UnknownCargoException if there's no cargo with this tracking id
-   * @throws UnknownLocationException if there's no location with this UN Locode
+   * @throws CannotCreateHandlingEventException if there's no voyage with this number
+   * @throws CannotCreateHandlingEventException if there's no cargo with this tracking id
+   * @throws CannotCreateHandlingEventException if there's no location with this UN Locode
    */
-  // TODO [Clean Code] Look at the exception handling more seriously.
   public HandlingEvent createHandlingEvent(
       LocalDateTime registrationTime,
       LocalDateTime completionTime,
