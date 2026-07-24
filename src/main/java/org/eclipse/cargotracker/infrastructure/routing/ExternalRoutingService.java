@@ -6,7 +6,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import jakarta.annotation.PostConstruct;
-import jakarta.annotation.Resource;
 import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.ClientBuilder;
@@ -34,7 +33,6 @@ public class ExternalRoutingService implements RoutingService {
 
   @Inject private Logger logger;
 
-  @Resource(lookup = "java:app/configuration/GraphTraversalUrl")
   private String graphTraversalUrl;
 
   private WebTarget graphTraversalResource;
@@ -44,6 +42,10 @@ public class ExternalRoutingService implements RoutingService {
 
   @PostConstruct
   public void init() {
+    this.graphTraversalUrl = System.getenv("GRAPH_TRAVERSAL_URL");
+    if (this.graphTraversalUrl == null) {
+      this.graphTraversalUrl = "http://localhost:8080/rest/graph-traversal/shortest-path";
+    }
     graphTraversalResource = ClientBuilder.newClient().target(graphTraversalUrl);
     logger.log(
         Level.INFO, "Graph traversal URL to be used for the REST client: {0}", graphTraversalUrl);
