@@ -22,7 +22,7 @@
   </featureManager> 
 
   <!--
-  <logging traceSpecification="*=info:EJBContainer=all:Injection*=all:com.ibm.websphere.jaxrs*=all:com.ibm.ws.jaxrs*=all:logservice*=all:org.apache.cxf.*=all:rarInstall*=all:WAS.j2c*=all:runtime.update*=all:resource*=all"
+  <logging traceSpecification="*=info:EJBContainer=all:Injection*=all:com.ibm.websphere.jaxrs*=all:com.ibm.ws.jaxrs*=all:org.apache.cxf.*=all:resource*=all"
     traceFileName="trace.log"
     maxFileSize="0"
     maxFiles="0"
@@ -125,7 +125,7 @@
   <webApplication contextRoot="cargo-tracker" location="cargo-tracker.war">
     <classloader commonLibraryRef="dbLib"/>
     <web-bnd moduleName="cargo-tracker">
-      <env-entry name="java:app/configuration/GraphTraversalUrl" value="http://localhost:8080/cargo-tracker/rest/graph-traversal/shortest-path"/>
+      <env-entry name="java:app/configuration/GraphTraversalUrl" value="${GRAPH_TRAVERSAL_URL}"/>
     </web-bnd>
     <application-bnd>
       <security-role name="batchAdmin">
