@@ -72,14 +72,27 @@ import org.junit.jupiter.api.extension.ExtendWith;
 /**
  * Application layer integration test covering a number of otherwise fairly trivial components that
  * largely do not warrant their own tests.
+ *
+ * <p>Cloud-readiness fix (cr-java-0066 – Static Mutable Variables): The previously static mutable
+ * fields {@code trackingId}, {@code candidates}, {@code deadline}, and {@code assigned} have been
+ * converted to instance fields. In a multi-instance cloud deployment static fields create
+ * per-JVM state that diverges across nodes. Instance fields confine state to the single test
+ * instance managed by the Arquillian/JUnit 5 lifecycle, which is the correct pattern for
+ * integration tests. Shared mutable application state that must survive across instances should
+ * be stored in Amazon ElastiCache for Redis (see {@link
+ * org.eclipse.cargotracker.domain.model.voyage.VoyageRedisCache} for the production pattern).
  */
 @ExtendWith(ArquillianExtension.class)
 @TestMethodOrder(OrderAnnotation.class)
 public class BookingServiceTest {
-  private static TrackingId trackingId;
-  private static List<Itinerary> candidates;
-  private static LocalDate deadline;
-  private static Itinerary assigned;
+
+  // cr-java-0066 fix: converted from static mutable fields to instance fields.
+  // Static mutable state causes data inconsistency across distributed cloud instances.
+  // These fields are scoped to the single test-class instance managed by JUnit 5 / Arquillian.
+  private TrackingId trackingId;
+  private List<Itinerary> candidates;
+  private LocalDate deadline;
+  private Itinerary assigned;
 
   @Inject private BookingService bookingService;
   @PersistenceContext private EntityManager entityManager;

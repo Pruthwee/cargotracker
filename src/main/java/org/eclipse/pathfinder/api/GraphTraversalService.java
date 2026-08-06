@@ -1,5 +1,6 @@
 package org.eclipse.pathfinder.api;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -62,7 +63,7 @@ public class GraphTraversalService {
       allVertices = getRandomChunkOfLocations(allVertices);
       List<TransitEdge> transitEdges = new ArrayList<>(allVertices.size() - 1);
       String fromUnLocode = originUnLocode;
-      LocalDateTime date = LocalDateTime.now();
+      LocalDateTime date = LocalDateTime.now(Clock.systemUTC());
 
       for (int j = 0; j <= allVertices.size(); ++j) {
         LocalDateTime fromDate = nextDate(date);

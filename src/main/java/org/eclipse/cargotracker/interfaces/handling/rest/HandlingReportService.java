@@ -1,5 +1,6 @@
 package org.eclipse.cargotracker.interfaces.handling.rest;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
@@ -46,7 +47,7 @@ public class HandlingReportService {
 
     HandlingEventRegistrationAttempt attempt =
         new HandlingEventRegistrationAttempt(
-            LocalDateTime.now(), completionTime, trackingId, voyageNumber, type, unLocode);
+            LocalDateTime.now(Clock.systemUTC()), completionTime, trackingId, voyageNumber, type, unLocode);
 
     applicationEvents.receivedHandlingEventRegistrationAttempt(attempt);
   }

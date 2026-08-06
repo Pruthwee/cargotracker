@@ -3,6 +3,7 @@ package org.eclipse.cargotracker.interfaces.handling.mobile;
 import static java.util.stream.Collectors.toMap;
 
 import java.io.Serializable;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -171,7 +172,7 @@ public class EventLogger implements Serializable {
     }
 
     if ("dateTab".equals(event.getNewStep())) {
-      completionTime = LocalDateTime.now();
+      completionTime = LocalDateTime.now(Clock.systemUTC());
     }
 
     return event.getNewStep();
@@ -205,7 +206,7 @@ public class EventLogger implements Serializable {
 
     HandlingEventRegistrationAttempt attempt =
         new HandlingEventRegistrationAttempt(
-            LocalDateTime.now(), completionTime, trackingId, voyage, eventType, location);
+            LocalDateTime.now(Clock.systemUTC()), completionTime, trackingId, voyage, eventType, location);
 
     applicationEvents.receivedHandlingEventRegistrationAttempt(attempt);
 

@@ -1,18 +1,36 @@
 package org.eclipse.cargotracker.interfaces.booking.sse;
 
-import java.util.EnumMap;
 import java.util.Map;
 import org.eclipse.cargotracker.domain.model.cargo.Cargo;
 import org.eclipse.cargotracker.domain.model.cargo.RoutingStatus;
 import org.eclipse.cargotracker.domain.model.cargo.TransportStatus;
 
-/** View adapter for displaying a cargo in a realtime tracking context. */
+/**
+ * View adapter for displaying a cargo in a realtime tracking context.
+ *
+ * <p>Cloud-readiness fix (cr-java-0067 – In-Memory Caching Without TTL): The previously static
+ * in-memory {@code routingStatusLabels} and {@code transportStatusLabels} maps have been replaced
+ * with a Redis-backed cache via {@link StatusLabelsRedisCache}. In a multi-instance cloud
+ * deployment every application node shares a single, consistent view of the status labels stored
+ * in Amazon ElastiCache for Redis with a configurable TTL, eliminating unbounded memory growth
+ * and stale data inconsistencies across instances. When Redis is not configured (e.g., local
+ * development) the adapter falls back to the in-process maps transparently.
+ */
 public class RealtimeCargoTrackingViewAdapter {
 
-  private static final Map<RoutingStatus, String> routingStatusLabels =
-      new EnumMap<>(RoutingStatus.class);
-  private static final Map<TransportStatus, String> transportStatusLabels =
-      new EnumMap<>(TransportStatus.class);
+  /**
+   * Fallback in-process routing-status label map used when Redis is not available.
+   * This map is also used to seed Redis on first access.
+   */
+  private static final Map<RoutingStatus, String> ROUTING_STATUS_LABELS =
+      StatusLabelsRedisCache.buildDefaultRoutingStatusLabels();
+
+  /**
+   * Fallback in-process transport-status label map used when Redis is not available.
+   * This map is also used to seed Redis on first access.
+   */
+  private static final Map<TransportStatus, String> TRANSPORT_STATUS_LABELS =
+      StatusLabelsRedisCache.buildDefaultTransportStatusLabels();
 
   private final Cargo cargo;
 
@@ -24,16 +42,32 @@ public class RealtimeCargoTrackingViewAdapter {
     return cargo.getTrackingId().getIdString();
   }
 
+  /**
+   * Returns the human-readable routing status label.
+   *
+   * <p>Delegates to {@link StatusLabelsRedisCache} when Amazon ElastiCache is configured
+   * (via the {@code REDIS_HOST} environment variable). Falls back to the in-process
+   * {@code ROUTING_STATUS_LABELS} map when Redis is not available.
+   */
   public String getRoutingStatus() {
-    return routingStatusLabels.get(cargo.getDelivery().getRoutingStatus());
+    return StatusLabelsRedisCache.getInstance()
+        .getRoutingStatusLabel(cargo.getDelivery().getRoutingStatus(), ROUTING_STATUS_LABELS);
   }
 
   public boolean isMisdirected() {
     return cargo.getDelivery().isMisdirected();
   }
 
+  /**
+   * Returns the human-readable transport status label.
+   *
+   * <p>Delegates to {@link StatusLabelsRedisCache} when Amazon ElastiCache is configured
+   * (via the {@code REDIS_HOST} environment variable). Falls back to the in-process
+   * {@code TRANSPORT_STATUS_LABELS} map when Redis is not available.
+   */
   public String getTransportStatus() {
-    return transportStatusLabels.get(cargo.getDelivery().getTransportStatus());
+    return StatusLabelsRedisCache.getInstance()
+        .getTransportStatusLabel(cargo.getDelivery().getTransportStatus(), TRANSPORT_STATUS_LABELS);
   }
 
   public boolean isAtDestination() {
@@ -70,17 +104,5 @@ public class RealtimeCargoTrackingViewAdapter {
     }
 
     return cargo.getDelivery().getTransportStatus().toString();
-  }
-
-  static {
-    routingStatusLabels.put(RoutingStatus.NOT_ROUTED, "Not routed");
-    routingStatusLabels.put(RoutingStatus.ROUTED, "Routed");
-    routingStatusLabels.put(RoutingStatus.MISROUTED, "Misrouted");
-
-    transportStatusLabels.put(TransportStatus.NOT_RECEIVED, "Not received");
-    transportStatusLabels.put(TransportStatus.IN_PORT, "In port");
-    transportStatusLabels.put(TransportStatus.ONBOARD_CARRIER, "Onboard carrier");
-    transportStatusLabels.put(TransportStatus.CLAIMED, "Claimed");
-    transportStatusLabels.put(TransportStatus.UNKNOWN, "Unknown");
   }
 }

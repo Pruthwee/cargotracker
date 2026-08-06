@@ -1,6 +1,7 @@
 package org.eclipse.cargotracker.application.internal;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.logging.Logger;
 import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
@@ -30,7 +31,7 @@ public class DefaultHandlingEventService implements HandlingEventService {
       UnLocode unLocode,
       HandlingEvent.Type type)
       throws CannotCreateHandlingEventException {
-    LocalDateTime registrationTime = LocalDateTime.now();
+    LocalDateTime registrationTime = LocalDateTime.now(ZoneOffset.UTC);
 
     /*
      * Using a factory to create a HandlingEvent (aggregate). This is where it is

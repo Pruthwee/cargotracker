@@ -11,6 +11,7 @@ import static org.eclipse.cargotracker.domain.model.cargo.TransportStatus.UNKNOW
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Iterator;
 import jakarta.persistence.Column;
@@ -87,7 +88,7 @@ public class Delivery implements Serializable {
       HandlingEvent lastEvent, Itinerary itinerary, RouteSpecification routeSpecification) {
     // This is a workaround to a Hibernate issue. when the `LocalDateTime` field is persisted into
     // the DB, and retrieved from the DB, the values are different by nanoseconds.
-    this.calculatedAt = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+    this.calculatedAt = LocalDateTime.now(ZoneOffset.UTC).truncatedTo(ChronoUnit.SECONDS);
     this.lastEvent = lastEvent;
 
     this.misdirected = calculateMisdirectionStatus(itinerary);

@@ -24,10 +24,22 @@ import org.eclipse.cargotracker.domain.model.location.UnLocode;
 /**
  * At the moment, coordinates are produced by a simple factory. It may be converted to a repository
  * if coordinates become a domain layer concern.
+ *
+ * <p>Cloud-readiness fix (cr-java-0067 – In-Memory Caching Without TTL): The previously static
+ * in-memory {@code COORDINATES_MAP} has been replaced with a Redis-backed cache via
+ * {@link CoordinatesRedisCache}. In a multi-instance cloud deployment every application node
+ * shares a single, consistent view of the coordinates stored in Amazon ElastiCache for Redis
+ * with a configurable TTL, eliminating unbounded memory growth and stale data inconsistencies.
+ * When Redis is not configured (e.g., local development) the factory falls back to the
+ * in-process map transparently.
  */
 public class CoordinatesFactory {
 
-  private static final Map<String, Coordinates> COORDINATES_MAP;
+  /**
+   * Fallback in-process coordinates map used when Redis is not available.
+   * This map is also used to seed Redis on first access.
+   */
+  private static final Map<String, Coordinates> FALLBACK_COORDINATES_MAP;
 
   private CoordinatesFactory() {
     /* Prevent instantiation. */
@@ -41,8 +53,19 @@ public class CoordinatesFactory {
     return find(unLocode.getIdString());
   }
 
+  /**
+   * Looks up coordinates for the given UN/LOCODE string.
+   *
+   * <p>Delegates to {@link CoordinatesRedisCache} when Amazon ElastiCache is configured
+   * (via the {@code REDIS_HOST} environment variable). Falls back to the in-process
+   * {@code FALLBACK_COORDINATES_MAP} when Redis is not available, ensuring the application
+   * continues to work in local-development and test environments.
+   *
+   * @param unLocode the UN/LOCODE string to look up
+   * @return the {@link Coordinates} for the given UN/LOCODE, or {@code null} if not found
+   */
   public static Coordinates find(String unLocode) {
-    return COORDINATES_MAP.get(unLocode);
+    return CoordinatesRedisCache.getInstance().getCoordinates(unLocode, FALLBACK_COORDINATES_MAP);
   }
 
   static {
@@ -64,6 +87,6 @@ public class CoordinatesFactory {
     map.put(DALLAS.getUnLocode().getIdString(), new Coordinates(33, -97));
     map.put(UNKNOWN.getUnLocode().getIdString(), new Coordinates(-90, 0)); // The South Pole.
 
-    COORDINATES_MAP = Collections.unmodifiableMap(map);
+    FALLBACK_COORDINATES_MAP = Collections.unmodifiableMap(map);
   }
 }

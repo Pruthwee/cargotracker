@@ -2,6 +2,7 @@ package org.eclipse.cargotracker.application;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import org.eclipse.cargotracker.application.internal.DefaultHandlingEventService;
 import org.eclipse.cargotracker.domain.model.cargo.Cargo;
 import org.eclipse.cargotracker.domain.model.cargo.RouteSpecification;
@@ -54,7 +55,7 @@ public class HandlingEventServiceTest {
     //                locationRepository, applicationEvents);
 
     service.registerHandlingEvent(
-        LocalDateTime.now(),
+        LocalDateTime.now(ZoneOffset.UTC),
         cargo.getTrackingId(),
         SampleVoyages.CM001.getVoyageNumber(),
         SampleLocations.STOCKHOLM.getUnLocode(),

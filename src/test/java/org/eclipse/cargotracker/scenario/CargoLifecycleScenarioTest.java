@@ -7,8 +7,11 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.List;
 import org.eclipse.cargotracker.application.ApplicationEvents;
@@ -39,6 +42,11 @@ import org.eclipse.cargotracker.domain.model.voyage.VoyageRepository;
 import org.eclipse.cargotracker.domain.service.RoutingService;
 
 public class CargoLifecycleScenarioTest {
+
+  // Cloud-ready: UTC clock standardized for distributed cloud environments (AWS multi-region).
+  // Uses Clock.fixed with ZoneOffset.UTC to ensure deterministic, timezone-independent time
+  // across all cloud regions and containers, replacing system-local timezone dependencies.
+  private final Clock clock = Clock.fixed(Instant.now(), ZoneOffset.UTC);
 
   /**
    * Repository implementations are part of the infrastructure layer, which in this test is stubbed
@@ -90,7 +98,7 @@ public class CargoLifecycleScenarioTest {
      */
     Location origin = SampleLocations.HONGKONG;
     Location destination = SampleLocations.STOCKHOLM;
-    LocalDate arrivalDeadline = LocalDate.now().minusYears(1).plusMonths(3).plusDays(18);
+    LocalDate arrivalDeadline = LocalDate.now(clock).minusYears(1).plusMonths(3).plusDays(18);
 
     /*
      * Use case 1: booking
@@ -155,7 +163,7 @@ public class CargoLifecycleScenarioTest {
      * Handling begins: cargo is received in Hongkong.
      */
     handlingEventService.registerHandlingEvent(
-        LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(1),
+        LocalDateTime.now(clock).minusYears(1).plusMonths(3).plusDays(1),
         trackingId,
         null,
         SampleLocations.HONGKONG.getUnLocode(),
@@ -166,7 +174,7 @@ public class CargoLifecycleScenarioTest {
 
     // Next event: Load onto voyage SampleVoyages.CM003 in Hongkong
     handlingEventService.registerHandlingEvent(
-        LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(3),
+        LocalDateTime.now(clock).minusYears(1).plusMonths(3).plusDays(3),
         trackingId,
         SampleVoyages.v100.getVoyageNumber(),
         SampleLocations.HONGKONG.getUnLocode(),
@@ -195,7 +203,7 @@ public class CargoLifecycleScenarioTest {
 
     try {
       handlingEventService.registerHandlingEvent(
-          LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(5),
+          LocalDateTime.now(clock).minusYears(1).plusMonths(3).plusDays(5),
           trackingId,
           noSuchVoyageNumber,
           noSuchUnLocode,
@@ -207,7 +215,7 @@ public class CargoLifecycleScenarioTest {
 
     // Cargo is now (incorrectly) unloaded in Tokyo
     handlingEventService.registerHandlingEvent(
-        LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(5),
+        LocalDateTime.now(clock).minusYears(1).plusMonths(3).plusDays(5),
         trackingId,
         SampleVoyages.v100.getVoyageNumber(),
         SampleLocations.TOKYO.getUnLocode(),
@@ -251,7 +259,7 @@ public class CargoLifecycleScenarioTest {
     // -- Cargo has been rerouted, shipping continues --
     // Load in Tokyo
     handlingEventService.registerHandlingEvent(
-        LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(8),
+        LocalDateTime.now(clock).minusYears(1).plusMonths(3).plusDays(8),
         trackingId,
         SampleVoyages.v300.getVoyageNumber(),
         SampleLocations.TOKYO.getUnLocode(),
@@ -269,7 +277,7 @@ public class CargoLifecycleScenarioTest {
 
     // Unload in Hamburg
     handlingEventService.registerHandlingEvent(
-        LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(12),
+        LocalDateTime.now(clock).minusYears(1).plusMonths(3).plusDays(12),
         trackingId,
         SampleVoyages.v300.getVoyageNumber(),
         SampleLocations.HAMBURG.getUnLocode(),
@@ -286,7 +294,7 @@ public class CargoLifecycleScenarioTest {
 
     // Load in Hamburg
     handlingEventService.registerHandlingEvent(
-        LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(14),
+        LocalDateTime.now(clock).minusYears(1).plusMonths(3).plusDays(14),
         trackingId,
         SampleVoyages.v400.getVoyageNumber(),
         SampleLocations.HAMBURG.getUnLocode(),
@@ -304,7 +312,7 @@ public class CargoLifecycleScenarioTest {
 
     // Unload in SampleLocations.STOCKHOLM
     handlingEventService.registerHandlingEvent(
-        LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(15),
+        LocalDateTime.now(clock).minusYears(1).plusMonths(3).plusDays(15),
         trackingId,
         SampleVoyages.v400.getVoyageNumber(),
         SampleLocations.STOCKHOLM.getUnLocode(),
@@ -322,7 +330,7 @@ public class CargoLifecycleScenarioTest {
     // Finally, cargo is claimed in SampleLocations.STOCKHOLM. This ends the cargo
     // lifecycle from our perspective.
     handlingEventService.registerHandlingEvent(
-        LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(16),
+        LocalDateTime.now(clock).minusYears(1).plusMonths(3).plusDays(16),
         trackingId,
         null,
         SampleLocations.STOCKHOLM.getUnLocode(),
@@ -355,20 +363,20 @@ public class CargoLifecycleScenarioTest {
                             SampleVoyages.v100,
                             SampleLocations.HONGKONG,
                             SampleLocations.NEWYORK,
-                            LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(3),
-                            LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(9)),
+                            LocalDateTime.now(clock).minusYears(1).plusMonths(3).plusDays(3),
+                            LocalDateTime.now(clock).minusYears(1).plusMonths(3).plusDays(9)),
                         new Leg(
                             SampleVoyages.v200,
                             SampleLocations.NEWYORK,
                             SampleLocations.CHICAGO,
-                            LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(10),
-                            LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(14)),
+                            LocalDateTime.now(clock).minusYears(1).plusMonths(3).plusDays(10),
+                            LocalDateTime.now(clock).minusYears(1).plusMonths(3).plusDays(14)),
                         new Leg(
                             SampleVoyages.v200,
                             SampleLocations.CHICAGO,
                             SampleLocations.STOCKHOLM,
-                            LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(7),
-                            LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(11)))));
+                            LocalDateTime.now(clock).minusYears(1).plusMonths(3).plusDays(7),
+                            LocalDateTime.now(clock).minusYears(1).plusMonths(3).plusDays(11)))));
           } else {
             // Tokyo - Hamburg - SampleLocations.STOCKHOLM, rerouting misdirected cargo
             // from
@@ -380,14 +388,14 @@ public class CargoLifecycleScenarioTest {
                             SampleVoyages.v300,
                             SampleLocations.TOKYO,
                             SampleLocations.HAMBURG,
-                            LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(8),
-                            LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(12)),
+                            LocalDateTime.now(clock).minusYears(1).plusMonths(3).plusDays(8),
+                            LocalDateTime.now(clock).minusYears(1).plusMonths(3).plusDays(12)),
                         new Leg(
                             SampleVoyages.v400,
                             SampleLocations.HAMBURG,
                             SampleLocations.STOCKHOLM,
-                            LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(14),
-                            LocalDateTime.now().minusYears(1).plusMonths(3).plusDays(15)))));
+                            LocalDateTime.now(clock).minusYears(1).plusMonths(3).plusDays(14),
+                            LocalDateTime.now(clock).minusYears(1).plusMonths(3).plusDays(15)))));
           }
         };
 

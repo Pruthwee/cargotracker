@@ -4,8 +4,11 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -17,15 +20,20 @@ import org.junit.jupiter.api.Test;
 
 public class ItineraryTest {
 
+  // Cloud-ready: UTC clock standardized for distributed cloud environments (AWS multi-region).
+  // Uses Clock.fixed with ZoneOffset.UTC to ensure deterministic, timezone-independent time
+  // across all cloud regions and containers, replacing system-local timezone dependencies.
+  private final Clock clock = Clock.fixed(Instant.now(), ZoneOffset.UTC);
+
   private Voyage voyage =
       new Voyage.Builder(new VoyageNumber("0123"), SampleLocations.SHANGHAI)
-          .addMovement(SampleLocations.ROTTERDAM, LocalDateTime.now(), LocalDateTime.now())
-          .addMovement(SampleLocations.GOTHENBURG, LocalDateTime.now(), LocalDateTime.now())
+          .addMovement(SampleLocations.ROTTERDAM, LocalDateTime.now(clock), LocalDateTime.now(clock))
+          .addMovement(SampleLocations.GOTHENBURG, LocalDateTime.now(clock), LocalDateTime.now(clock))
           .build();
   private Voyage wrongVoyage =
       new Voyage.Builder(new VoyageNumber("666"), SampleLocations.NEWYORK)
-          .addMovement(SampleLocations.STOCKHOLM, LocalDateTime.now(), LocalDateTime.now())
-          .addMovement(SampleLocations.HELSINKI, LocalDateTime.now(), LocalDateTime.now())
+          .addMovement(SampleLocations.STOCKHOLM, LocalDateTime.now(clock), LocalDateTime.now(clock))
+          .addMovement(SampleLocations.HELSINKI, LocalDateTime.now(clock), LocalDateTime.now(clock))
           .build();
 
   @Test
@@ -33,7 +41,7 @@ public class ItineraryTest {
     TrackingId trackingId = new TrackingId("CARGO1");
     RouteSpecification routeSpecification =
         new RouteSpecification(
-            SampleLocations.SHANGHAI, SampleLocations.GOTHENBURG, LocalDate.now());
+            SampleLocations.SHANGHAI, SampleLocations.GOTHENBURG, LocalDate.now(clock));
     Cargo cargo = new Cargo(trackingId, routeSpecification);
 
     Itinerary itinerary =
@@ -43,21 +51,21 @@ public class ItineraryTest {
                     voyage,
                     SampleLocations.SHANGHAI,
                     SampleLocations.ROTTERDAM,
-                    LocalDateTime.now(),
-                    LocalDateTime.now()),
+                    LocalDateTime.now(clock),
+                    LocalDateTime.now(clock)),
                 new Leg(
                     voyage,
                     SampleLocations.ROTTERDAM,
                     SampleLocations.GOTHENBURG,
-                    LocalDateTime.now(),
-                    LocalDateTime.now())));
+                    LocalDateTime.now(clock),
+                    LocalDateTime.now(clock))));
 
     // Happy path
     HandlingEvent event =
         new HandlingEvent(
             cargo,
-            LocalDateTime.now(),
-            LocalDateTime.now(),
+            LocalDateTime.now(clock),
+            LocalDateTime.now(clock),
             HandlingEvent.Type.RECEIVE,
             SampleLocations.SHANGHAI);
     assertTrue(itinerary.isExpected(event));
@@ -65,8 +73,8 @@ public class ItineraryTest {
     event =
         new HandlingEvent(
             cargo,
-            LocalDateTime.now(),
-            LocalDateTime.now(),
+            LocalDateTime.now(clock),
+            LocalDateTime.now(clock),
             HandlingEvent.Type.LOAD,
             SampleLocations.SHANGHAI,
             voyage);
@@ -75,8 +83,8 @@ public class ItineraryTest {
     event =
         new HandlingEvent(
             cargo,
-            LocalDateTime.now(),
-            LocalDateTime.now(),
+            LocalDateTime.now(clock),
+            LocalDateTime.now(clock),
             HandlingEvent.Type.UNLOAD,
             SampleLocations.ROTTERDAM,
             voyage);
@@ -85,8 +93,8 @@ public class ItineraryTest {
     event =
         new HandlingEvent(
             cargo,
-            LocalDateTime.now(),
-            LocalDateTime.now(),
+            LocalDateTime.now(clock),
+            LocalDateTime.now(clock),
             HandlingEvent.Type.LOAD,
             SampleLocations.ROTTERDAM,
             voyage);
@@ -95,8 +103,8 @@ public class ItineraryTest {
     event =
         new HandlingEvent(
             cargo,
-            LocalDateTime.now(),
-            LocalDateTime.now(),
+            LocalDateTime.now(clock),
+            LocalDateTime.now(clock),
             HandlingEvent.Type.UNLOAD,
             SampleLocations.GOTHENBURG,
             voyage);
@@ -105,8 +113,8 @@ public class ItineraryTest {
     event =
         new HandlingEvent(
             cargo,
-            LocalDateTime.now(),
-            LocalDateTime.now(),
+            LocalDateTime.now(clock),
+            LocalDateTime.now(clock),
             HandlingEvent.Type.CLAIM,
             SampleLocations.GOTHENBURG);
     assertTrue(itinerary.isExpected(event));
@@ -115,8 +123,8 @@ public class ItineraryTest {
     event =
         new HandlingEvent(
             cargo,
-            LocalDateTime.now(),
-            LocalDateTime.now(),
+            LocalDateTime.now(clock),
+            LocalDateTime.now(clock),
             HandlingEvent.Type.CUSTOMS,
             SampleLocations.GOTHENBURG);
     assertTrue(itinerary.isExpected(event));
@@ -125,8 +133,8 @@ public class ItineraryTest {
     event =
         new HandlingEvent(
             cargo,
-            LocalDateTime.now(),
-            LocalDateTime.now(),
+            LocalDateTime.now(clock),
+            LocalDateTime.now(clock),
             HandlingEvent.Type.RECEIVE,
             SampleLocations.HANGZOU);
     assertFalse(itinerary.isExpected(event));
@@ -135,8 +143,8 @@ public class ItineraryTest {
     event =
         new HandlingEvent(
             cargo,
-            LocalDateTime.now(),
-            LocalDateTime.now(),
+            LocalDateTime.now(clock),
+            LocalDateTime.now(clock),
             HandlingEvent.Type.LOAD,
             SampleLocations.ROTTERDAM,
             wrongVoyage);
@@ -146,8 +154,8 @@ public class ItineraryTest {
     event =
         new HandlingEvent(
             cargo,
-            LocalDateTime.now(),
-            LocalDateTime.now(),
+            LocalDateTime.now(clock),
+            LocalDateTime.now(clock),
             HandlingEvent.Type.UNLOAD,
             SampleLocations.HELSINKI,
             wrongVoyage);
@@ -156,8 +164,8 @@ public class ItineraryTest {
     event =
         new HandlingEvent(
             cargo,
-            LocalDateTime.now(),
-            LocalDateTime.now(),
+            LocalDateTime.now(clock),
+            LocalDateTime.now(clock),
             HandlingEvent.Type.CLAIM,
             SampleLocations.ROTTERDAM);
     assertFalse(itinerary.isExpected(event));
@@ -168,7 +176,7 @@ public class ItineraryTest {
     TrackingId trackingId = new TrackingId("CARGO1");
     RouteSpecification routeSpecification =
             new RouteSpecification(
-                    SampleLocations.SHANGHAI, SampleLocations.GOTHENBURG, LocalDate.now());
+                    SampleLocations.SHANGHAI, SampleLocations.GOTHENBURG, LocalDate.now(clock));
     Cargo cargo = new Cargo(trackingId, routeSpecification);
 
     Itinerary itinerary = new Itinerary(Arrays.asList(
@@ -176,27 +184,27 @@ public class ItineraryTest {
                     voyage,
                     SampleLocations.SHANGHAI,
                     SampleLocations.ROTTERDAM,
-                    LocalDateTime.now(),
-                    LocalDateTime.now()),
+                    LocalDateTime.now(clock),
+                    LocalDateTime.now(clock)),
             new Leg(
                     voyage,
                     SampleLocations.ROTTERDAM,
                     SampleLocations.GOTHENBURG,
-                    LocalDateTime.now(),
-                    LocalDateTime.now())));
+                    LocalDateTime.now(clock),
+                    LocalDateTime.now(clock))));
 
     HandlingEvent receiveEvent = new HandlingEvent(
             cargo,
-            LocalDateTime.now(),
-            LocalDateTime.now(),
+            LocalDateTime.now(clock),
+            LocalDateTime.now(clock),
             HandlingEvent.Type.RECEIVE,
             SampleLocations.SHANGHAI);
     assertTrue(itinerary.isExpected(receiveEvent));
 
     HandlingEvent unexpectedEvent = new HandlingEvent(
             cargo,
-            LocalDateTime.now(),
-            LocalDateTime.now(),
+            LocalDateTime.now(clock),
+            LocalDateTime.now(clock),
             HandlingEvent.Type.UNLOAD,
             SampleLocations.ROTTERDAM,
             wrongVoyage);
@@ -204,8 +212,8 @@ public class ItineraryTest {
 
     HandlingEvent claimEvent = new HandlingEvent(
             cargo,
-            LocalDateTime.now(),
-            LocalDateTime.now(),
+            LocalDateTime.now(clock),
+            LocalDateTime.now(clock),
             HandlingEvent.Type.CLAIM,
             SampleLocations.GOTHENBURG);
     assertTrue(itinerary.isExpected(claimEvent));
