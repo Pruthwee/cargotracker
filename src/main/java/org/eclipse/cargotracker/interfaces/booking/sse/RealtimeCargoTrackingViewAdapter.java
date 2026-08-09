@@ -9,9 +9,9 @@ import org.eclipse.cargotracker.domain.model.cargo.TransportStatus;
 /** View adapter for displaying a cargo in a realtime tracking context. */
 public class RealtimeCargoTrackingViewAdapter {
 
-  private static final Map<RoutingStatus, String> routingStatusLabels =
+  private static final Map<RoutingStatus, String> ROUTING_STATUS_LABELS =
       new EnumMap<>(RoutingStatus.class);
-  private static final Map<TransportStatus, String> transportStatusLabels =
+  private static final Map<TransportStatus, String> TRANSPORT_STATUS_LABELS =
       new EnumMap<>(TransportStatus.class);
 
   private final Cargo cargo;
@@ -25,7 +25,7 @@ public class RealtimeCargoTrackingViewAdapter {
   }
 
   public String getRoutingStatus() {
-    return routingStatusLabels.get(cargo.getDelivery().getRoutingStatus());
+    return ROUTING_STATUS_LABELS.get(cargo.getDelivery().getRoutingStatus());
   }
 
   public boolean isMisdirected() {
@@ -33,7 +33,7 @@ public class RealtimeCargoTrackingViewAdapter {
   }
 
   public String getTransportStatus() {
-    return transportStatusLabels.get(cargo.getDelivery().getTransportStatus());
+    return TRANSPORT_STATUS_LABELS.get(cargo.getDelivery().getTransportStatus());
   }
 
   public boolean isAtDestination() {
@@ -73,14 +73,14 @@ public class RealtimeCargoTrackingViewAdapter {
   }
 
   static {
-    routingStatusLabels.put(RoutingStatus.NOT_ROUTED, "Not routed");
-    routingStatusLabels.put(RoutingStatus.ROUTED, "Routed");
-    routingStatusLabels.put(RoutingStatus.MISROUTED, "Misrouted");
+    ROUTING_STATUS_LABELS.put(RoutingStatus.NOT_ROUTED, "Not routed");
+    ROUTING_STATUS_LABELS.put(RoutingStatus.ROUTED, "Routed");
+    ROUTING_STATUS_LABELS.put(RoutingStatus.MISROUTED, "Misrouted");
 
-    transportStatusLabels.put(TransportStatus.NOT_RECEIVED, "Not received");
-    transportStatusLabels.put(TransportStatus.IN_PORT, "In port");
-    transportStatusLabels.put(TransportStatus.ONBOARD_CARRIER, "Onboard carrier");
-    transportStatusLabels.put(TransportStatus.CLAIMED, "Claimed");
-    transportStatusLabels.put(TransportStatus.UNKNOWN, "Unknown");
+    TRANSPORT_STATUS_LABELS.put(TransportStatus.NOT_RECEIVED, "Not received");
+    TRANSPORT_STATUS_LABELS.put(TransportStatus.IN_PORT, "In port");
+    TRANSPORT_STATUS_LABELS.put(TransportStatus.ONBOARD_CARRIER, "Onboard carrier");
+    TRANSPORT_STATUS_LABELS.put(TransportStatus.CLAIMED, "Claimed");
+    TRANSPORT_STATUS_LABELS.put(TransportStatus.UNKNOWN, "Unknown");
   }
 }
