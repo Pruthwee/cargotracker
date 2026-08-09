@@ -1,35 +1,37 @@
-# To run the cloud version locally, first build the application using:
-#
-#  ./mvnw clean package -Pcloud
-#      -DpostgreSqlJdbcUrl="jdbc:postgresql://postgres:5432/postgres"
-#      -DpostgreSqlUsername="cargotracker" -DpostgreSqlPassword="cargotracker"
-#
-# Then start the services with:
-#
-#  docker-compose up
-#
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:16
-    environment:
-      POSTGRES_USER: cargotracker
-      POSTGRES_PASSWORD: cargotracker
-      POSTGRES_DB: postgres
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-
-  cargotracker:
-    build: .
+  cargo-tracker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        POSTGRESQL_JDBC_URL: ${POSTGRESQL_JDBC_URL:-jdbc:postgresql://host.docker.internal:5432/postgres}
+        POSTGRESQL_USERNAME: ${POSTGRESQL_USERNAME:-postgres}
+        POSTGRESQL_PASSWORD: ${POSTGRESQL_PASSWORD:-postgres}
+        GRAPH_TRAVERSAL_URL: ${GRAPH_TRAVERSAL_URL:-http://localhost:8080/rest/graph-traversal/shortest-path}
+    image: cargo-tracker:latest
+    container_name: cargo-tracker
     ports:
       - "8080:8080"
-    depends_on:
-      - postgres
     environment:
-      DB_HOST: postgres
+      TZ: UTC
+      JAVA_OPTS: "-Xms256m -Xmx512m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Dfile.encoding=UTF-8"
+      PAYARA_ARGS: "--nocluster --nohazelcast --port 8080"
+      POSTGRESQL_JDBC_URL: ${POSTGRESQL_JDBC_URL:-jdbc:postgresql://host.docker.internal:5432/postgres}
+      POSTGRESQL_USERNAME: ${POSTGRESQL_USERNAME:-postgres}
+      POSTGRESQL_PASSWORD: ${POSTGRESQL_PASSWORD:-postgres}
+      GRAPH_TRAVERSAL_URL: ${GRAPH_TRAVERSAL_URL:-http://localhost:8080/rest/graph-traversal/shortest-path}
+    volumes:
+      - ./config:/app/config:ro
+      - cargo-tracker-data:/app/cargo-tracker-data
+    networks:
+      - app-network
+    restart: unless-stopped
+
+networks:
+  app-network:
+    driver: bridge
 
 volumes:
-  postgres-data:
+  cargo-tracker-data:
