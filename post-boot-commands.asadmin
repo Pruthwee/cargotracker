@@ -1,2 +1,2 @@
-add-library /tmp/postgresql.jar
-deploy --name cargo-tracker --contextroot / /tmp/cargo-tracker.war
+add-library /opt/payara/libs/postgresql.jar
+deploy --name cargo-tracker --contextroot / /opt/payara/deployments/cargo-tracker.war
