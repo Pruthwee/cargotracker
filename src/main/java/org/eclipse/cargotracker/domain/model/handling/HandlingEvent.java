@@ -177,23 +177,14 @@ public class HandlingEvent implements Serializable {
   }
 
   public String getSummary() {
-    StringBuilder builder =
-        new StringBuilder(location.getName())
-            .append("\n")
-            .append(completionTime)
-            .append("\n")
-            .append("Type: ")
-            .append(type)
-            .append("\n")
-            .append("Reg.: ")
-            .append(registrationTime)
-            .append("\n");
-
+    String base = location.getName() + "\n"
+        + completionTime + "\n"
+        + "Type: " + type + "\n"
+        + "Reg.: " + registrationTime + "\n";
     if (voyage != null) {
-      builder.append("Voyage: ").append(voyage.getVoyageNumber());
+      return base + "Voyage: " + voyage.getVoyageNumber();
     }
-
-    return builder.toString();
+    return base;
   }
 
   @Override
