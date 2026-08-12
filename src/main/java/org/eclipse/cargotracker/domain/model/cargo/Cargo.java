@@ -168,11 +168,10 @@ public class Cargo implements Serializable {
     if (this == object) {
       return true;
     }
-    if (object == null || !(object instanceof Cargo)) {
+    // Java 21 pattern matching instanceof - eliminates verbose null check and cast
+    if (!(object instanceof Cargo other)) {
       return false;
     }
-
-    Cargo other = (Cargo) object;
     return sameIdentityAs(other);
   }
 
