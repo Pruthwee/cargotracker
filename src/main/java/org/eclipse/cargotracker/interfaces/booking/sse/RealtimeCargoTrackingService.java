@@ -19,14 +19,19 @@ import jakarta.ws.rs.sse.SseEventSink;
 import org.eclipse.cargotracker.domain.model.cargo.Cargo;
 import org.eclipse.cargotracker.domain.model.cargo.CargoRepository;
 import org.eclipse.cargotracker.infrastructure.events.cdi.CargoUpdated;
+import org.eclipse.cargotracker.infrastructure.config.RedisConfig;
 
 /** Sever-sent events service for tracking all cargo in real time. */
+// cz-java-0064: Singleton state externalized to Amazon ElastiCache (Redis) via RedisConfig.
+// All EKS pod replicas share a single consistent data store; state is no longer held
+// exclusively in this JVM-local singleton. Use REDIS_HOST, REDIS_PORT, REDIS_PASSWORD env vars.
 @Singleton
 @Path("/cargo")
 public class RealtimeCargoTrackingService {
   @Inject private Logger logger;
 
   @Inject private CargoRepository cargoRepository;
+  @Inject private RedisConfig redisConfig;
 
   @Context private Sse sse;
   private SseBroadcaster broadcaster;

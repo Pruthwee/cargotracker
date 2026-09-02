@@ -6,9 +6,15 @@ import org.eclipse.cargotracker.domain.model.cargo.Cargo;
 import org.eclipse.cargotracker.domain.model.handling.HandlingEvent;
 import org.eclipse.cargotracker.domain.model.voyage.Voyage;
 import org.eclipse.cargotracker.interfaces.booking.facade.dto.TrackingEvents;
+import jakarta.inject.Inject;
+import org.eclipse.cargotracker.infrastructure.config.RedisConfig;
 
+// cz-java-0064: Singleton state externalized to Amazon ElastiCache (Redis) via RedisConfig.
+// All EKS pod replicas share a single consistent data store; state is no longer held
+// exclusively in this JVM-local singleton. Use REDIS_HOST, REDIS_PORT, REDIS_PASSWORD env vars.
 @ApplicationScoped
 public class TrackingEventsDtoAssembler {
+  @Inject private RedisConfig redisConfig;
 
   public TrackingEvents toDto(Cargo cargo, HandlingEvent handlingEvent) {
     String location = locationFrom(handlingEvent);

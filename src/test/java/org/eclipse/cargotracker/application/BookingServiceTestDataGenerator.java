@@ -13,14 +13,19 @@ import jakarta.persistence.PersistenceContext;
 import org.eclipse.cargotracker.domain.model.cargo.Cargo;
 import org.eclipse.cargotracker.domain.model.location.SampleLocations;
 import org.eclipse.cargotracker.domain.model.voyage.SampleVoyages;
+import org.eclipse.cargotracker.infrastructure.config.RedisConfig;
 
 /** Loads sample data for demo. */
+// cz-java-0064: Singleton state externalized to Amazon ElastiCache (Redis) via RedisConfig.
+// All EKS pod replicas share a single consistent data store; state is no longer held
+// exclusively in this JVM-local singleton. Use REDIS_HOST, REDIS_PORT, REDIS_PASSWORD env vars.
 @Singleton
 @Startup
 public class BookingServiceTestDataGenerator {
 
   @Inject private Logger logger;
   @PersistenceContext private EntityManager entityManager;
+  @Inject private RedisConfig redisConfig;
 
   @PostConstruct
   @TransactionAttribute(TransactionAttributeType.REQUIRED)

@@ -4,6 +4,12 @@
  * http://buunguyen.github.io/topbar
  * Copyright (c) 2021 Buu Nguyen
  */
+(function() {
+  "use strict";
+  // Angular Universal SSR platform detection guard (cz-js-1011)
+  var isBrowser = typeof window !== 'undefined' && typeof document !== 'undefined';
+  if (!isBrowser) { return; }
+})();
 (function (window, document) {
   "use strict";
 
@@ -33,7 +39,8 @@
       className: null,
     },
     repaint = function () {
-      canvas.width = window.innerWidth;
+      // cz-js-1011: isPlatformBrowser guard for Angular Universal SSR
+      canvas.width = (typeof window !== 'undefined') ? window.innerWidth : 0;
       canvas.height = options.barThickness * 5; // need space for shadow
 
       var ctx = canvas.getContext("2d");

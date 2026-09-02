@@ -1,0 +1,15 @@
+{
+  "name": "cargo-tracker-css-build",
+  "version": "1.0.0",
+  "description": "CSS minification build tooling for cargo-tracker production container (cz-css-1004)",
+  "private": true,
+  "scripts": {
+    "minify-css": "find src/main/webapp/resources/css src/main/webapp/resources/leaflet -name '*.css' | xargs -I{} postcss {} --use cssnano -o {}",
+    "minify-css-verbose": "find src/main/webapp/resources/css src/main/webapp/resources/leaflet -name '*.css' | while read f; do echo \"Minifying: $f\"; npx postcss \"$f\" --use cssnano -o \"$f\"; done"
+  },
+  "devDependencies": {
+    "postcss": "^8.4.38",
+    "postcss-cli": "^11.0.0",
+    "cssnano": "^7.0.1"
+  }
+}

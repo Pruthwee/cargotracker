@@ -215,12 +215,15 @@ function timeoutDefer(fn) {
 	    timeToCall = Math.max(0, 16 - (time - lastTime));
 
 	lastTime = time + timeToCall;
+	// cz-js-1011: isPlatformBrowser guard for Angular Universal SSR
+	if (typeof window === 'undefined') { return 0; }
 	return window.setTimeout(fn, timeToCall);
 }
 
-var requestFn = window.requestAnimationFrame || getPrefixed('RequestAnimationFrame') || timeoutDefer;
-var cancelFn = window.cancelAnimationFrame || getPrefixed('CancelAnimationFrame') ||
-		getPrefixed('CancelRequestAnimationFrame') || function (id) { window.clearTimeout(id); };
+// cz-js-1011: isPlatformBrowser guard for Angular Universal SSR
+var requestFn = (typeof window !== 'undefined') ? (window.requestAnimationFrame || getPrefixed('RequestAnimationFrame') || timeoutDefer) : timeoutDefer;
+var cancelFn = (typeof window !== 'undefined') ? (window.cancelAnimationFrame || getPrefixed('CancelAnimationFrame') ||
+		getPrefixed('CancelRequestAnimationFrame') || function (id) { window.clearTimeout(id); }) : function (id) {};
 
 // @function requestAnimFrame(fn: Function, context?: Object, immediate?: Boolean): Number
 // Schedules `fn` to be executed when the browser repaints. `fn` is bound to

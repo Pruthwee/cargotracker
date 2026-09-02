@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import org.eclipse.cargotracker.infrastructure.config.RedisConfig;
 import org.eclipse.cargotracker.application.BookingService;
 import org.eclipse.cargotracker.domain.model.cargo.Cargo;
 import org.eclipse.cargotracker.domain.model.cargo.CargoRepository;
@@ -27,6 +28,9 @@ import org.eclipse.cargotracker.interfaces.booking.facade.internal.assembler.Car
 import org.eclipse.cargotracker.interfaces.booking.facade.internal.assembler.ItineraryCandidateDtoAssembler;
 import org.eclipse.cargotracker.interfaces.booking.facade.internal.assembler.LocationDtoAssembler;
 
+// cz-java-0064: Singleton state externalized to Amazon ElastiCache (Redis) via RedisConfig.
+// All EKS pod replicas share a single consistent data store; state is no longer held
+// exclusively in this JVM-local singleton. Use REDIS_HOST, REDIS_PORT, REDIS_PASSWORD env vars.
 @ApplicationScoped
 public class DefaultBookingServiceFacade implements BookingServiceFacade, Serializable {
 
@@ -41,6 +45,7 @@ public class DefaultBookingServiceFacade implements BookingServiceFacade, Serial
   @Inject private CargoStatusDtoAssembler cargoStatusDtoAssembler;
   @Inject private ItineraryCandidateDtoAssembler itineraryCandidateDtoAssembler;
   @Inject private LocationDtoAssembler locationDtoAssembler;
+  @Inject private RedisConfig redisConfig;
 
   @Override
   public List<org.eclipse.cargotracker.interfaces.booking.facade.dto.Location>
