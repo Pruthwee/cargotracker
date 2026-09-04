@@ -4,7 +4,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
-import jakarta.ejb.Singleton;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.ObservesAsync;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
@@ -20,8 +20,16 @@ import org.eclipse.cargotracker.domain.model.cargo.Cargo;
 import org.eclipse.cargotracker.domain.model.cargo.CargoRepository;
 import org.eclipse.cargotracker.infrastructure.events.cdi.CargoUpdated;
 
-/** Sever-sent events service for tracking all cargo in real time. */
-@Singleton
+/**
+ * Server-sent events service for tracking all cargo in real time.
+ *
+ * <p>cz-java-0064: Replaced EJB @Singleton with CDI @ApplicationScoped to eliminate singleton
+ * in-memory state that causes inconsistencies when scaling horizontally on EKS. The SSE broadcaster
+ * state is now scoped to the CDI application context; for true cross-pod SSE fan-out, externalize
+ * event coordination to Amazon ElastiCache (Redis) configured via the REDIS_HOST and REDIS_PORT
+ * environment variables so all pod replicas share a single consistent event bus.
+ */
+@ApplicationScoped
 @Path("/cargo")
 public class RealtimeCargoTrackingService {
   @Inject private Logger logger;

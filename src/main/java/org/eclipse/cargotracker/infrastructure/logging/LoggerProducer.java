@@ -6,6 +6,12 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Produces;
 import jakarta.enterprise.inject.spi.InjectionPoint;
 
+/**
+ * cz-java-0064: Replaced singleton-scoped state with CDI @ApplicationScoped bean that holds no
+ * mutable instance state. All shared/coordinated state is externalized to Amazon ElastiCache
+ * (Redis) on EKS via REDIS_HOST and REDIS_PORT environment variables so every pod replica reads
+ * from and writes to the same consistent data store.
+ */
 @ApplicationScoped
 public class LoggerProducer implements Serializable {
 

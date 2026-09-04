@@ -221,7 +221,7 @@
   	    timeToCall = Math.max(0, 16 - (time - lastTime));
 
   	lastTime = time + timeToCall;
-  	return window.setTimeout(fn, timeToCall);
+  	return (typeof window !== 'undefined') ? window.setTimeout(fn, timeToCall) : setTimeout(fn, timeToCall);
   }
 
   var requestFn = window.requestAnimationFrame || getPrefixed('RequestAnimationFrame') || timeoutDefer;

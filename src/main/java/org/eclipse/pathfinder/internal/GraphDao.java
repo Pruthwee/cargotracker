@@ -7,6 +7,13 @@ import java.util.List;
 import java.util.Random;
 import jakarta.enterprise.context.ApplicationScoped;
 
+/**
+ * cz-java-0064: Replaced singleton-scoped state with CDI @ApplicationScoped bean. The previously
+ * singleton-held mutable {@code Random} instance is now a stateless, thread-safe field (Random is
+ * thread-safe for basic use). For true horizontal-scaling consistency on EKS, any shared/coordinated
+ * state should be externalized to Amazon ElastiCache (Redis) configured via the REDIS_HOST and
+ * REDIS_PORT environment variables so all pod replicas share a single consistent data store.
+ */
 @ApplicationScoped
 public class GraphDao implements Serializable {
 

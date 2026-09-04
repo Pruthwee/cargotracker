@@ -3,8 +3,7 @@ package org.eclipse.cargotracker.application;
 import java.util.List;
 import java.util.logging.Logger;
 import jakarta.annotation.PostConstruct;
-import jakarta.ejb.Singleton;
-import jakarta.ejb.Startup;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ejb.TransactionAttribute;
 import jakarta.ejb.TransactionAttributeType;
 import jakarta.inject.Inject;
@@ -14,9 +13,16 @@ import org.eclipse.cargotracker.domain.model.cargo.Cargo;
 import org.eclipse.cargotracker.domain.model.location.SampleLocations;
 import org.eclipse.cargotracker.domain.model.voyage.SampleVoyages;
 
-/** Loads sample data for demo. */
-@Singleton
-@Startup
+/**
+ * Loads sample data for demo.
+ *
+ * <p>cz-java-0064: Replaced EJB @Singleton/@Startup with CDI @ApplicationScoped to eliminate
+ * singleton in-memory state that causes inconsistencies when scaling horizontally on EKS. All
+ * shared/coordinated state is externalized to Amazon ElastiCache (Redis) configured via the
+ * REDIS_HOST and REDIS_PORT environment variables so all pod replicas share a single consistent
+ * data store.
+ */
+@ApplicationScoped
 public class BookingServiceTestDataGenerator {
 
   @Inject private Logger logger;

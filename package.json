@@ -1,0 +1,16 @@
+{
+  "name": "cargo-tracker-css-build",
+  "version": "1.0.0",
+  "description": "CSS and HTML minification build tooling for cargo-tracker production container",
+  "private": true,
+  "scripts": {
+    "minify-css": "postcss src/main/webapp/resources/css/app.css --use cssnano --no-map -o src/main/webapp/resources/css/app.css && postcss src/main/webapp/resources/css/dd.css --use cssnano --no-map -o src/main/webapp/resources/css/dd.css && postcss src/main/webapp/resources/css/title.css --use cssnano --no-map -o src/main/webapp/resources/css/title.css && postcss src/main/webapp/resources/leaflet/leaflet.css --use cssnano --no-map -o src/main/webapp/resources/leaflet/leaflet.css",
+    "minify-html": "find src/main/java -name 'package.html' | xargs -I{} html-minifier-terser --collapse-whitespace --remove-comments --minify-js true --minify-css true {} -o {}"
+  },
+  "devDependencies": {
+    "cssnano": "^6.1.2",
+    "html-minifier-terser": "^7.2.0",
+    "postcss": "^8.4.38",
+    "postcss-cli": "^11.0.0"
+  }
+}

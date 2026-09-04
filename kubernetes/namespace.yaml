@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cargo-tracker
+  labels:
+    name: cargo-tracker
+    app: cargo-tracker

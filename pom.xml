@@ -72,13 +72,14 @@
       <version>14.0.5</version>
       <classifier>jakarta</classifier>
     </dependency>
-    <!-- We need a Jersey specific dependency for property name constants -->
+    <!-- Amazon ElastiCache (Redis) client - replaces local in-process caches (cz-java-0070).
+         Connection details are injected via REDIS_HOST and REDIS_PORT environment variables
+         sourced from Kubernetes ConfigMaps/Secrets with IRSA-secured access on EKS. -->
     <dependency>
-      <groupId>org.glassfish.jersey.core</groupId>
-      <artifactId>jersey-server</artifactId>
-      <version>3.1.10</version>
-      <scope>provided</scope>
-    </dependency>    
+      <groupId>redis.clients</groupId>
+      <artifactId>jedis</artifactId>
+      <version>5.1.0</version>
+    </dependency>
     <!-- Test dependencies -->
     <dependency>
       <groupId>org.junit.jupiter</groupId>
@@ -124,6 +125,14 @@
   <build>
     <finalName>cargo-tracker</finalName>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.13.0</version>
+        <configuration>
+          <release>11</release>
+        </configuration>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>
