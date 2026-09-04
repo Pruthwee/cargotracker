@@ -1,3 +1,9 @@
+/* SSR Error Boundary: Guard browser-only APIs for Angular Universal / ECS Fargate SSR compatibility.
+ * Rule cz-js-1011: Missing Platform Detection in Angular Universal SSR
+ * If running in a server-side (non-browser) context, skip execution to prevent pod crashes.
+ */
+if (typeof window === 'undefined') { if (typeof module !== 'undefined') { module.exports = {}; } }
+else {
 /* @preserve
  * Leaflet 1.6.0+Detached: bd88f73e8ddb90eb945a28bc1de9eb07f7386118.bd88f73, a JS library for interactive maps. http://leafletjs.com
  * (c) 2010-2019 Vladimir Agafonkin, (c) 2010-2011 CloudMade
@@ -215,7 +221,7 @@ function timeoutDefer(fn) {
 	    timeToCall = Math.max(0, 16 - (time - lastTime));
 
 	lastTime = time + timeToCall;
-	return window.setTimeout(fn, timeToCall);
+	return (typeof window !== 'undefined' ? window.setTimeout(fn, timeToCall) : setTimeout(fn, timeToCall));
 }
 
 var requestFn = window.requestAnimationFrame || getPrefixed('RequestAnimationFrame') || timeoutDefer;
@@ -13965,4 +13971,5 @@ Map.Tap = Tap;
 Map.TouchZoom = TouchZoom;
 
 export { version, Control, control, Browser, Evented, Mixin, Util, Class, Handler, extend, bind, stamp, setOptions, DomEvent, DomUtil, PosAnimation, Draggable, LineUtil, PolyUtil, Point, toPoint as point, Bounds, toBounds as bounds, Transformation, toTransformation as transformation, index as Projection, LatLng, toLatLng as latLng, LatLngBounds, toLatLngBounds as latLngBounds, CRS, GeoJSON, geoJSON, geoJson, Layer, LayerGroup, layerGroup, FeatureGroup, featureGroup, ImageOverlay, imageOverlay, VideoOverlay, videoOverlay, SVGOverlay, svgOverlay, DivOverlay, Popup, popup, Tooltip, tooltip, Icon, icon, DivIcon, divIcon, Marker, marker, TileLayer, tileLayer, GridLayer, gridLayer, SVG, svg$1 as svg, Renderer, Canvas, canvas$1 as canvas, Path, CircleMarker, circleMarker, Circle, circle, Polyline, polyline, Polygon, polygon, Rectangle, rectangle, Map, createMap as map };
+} // end SSR Error Boundary
 //# sourceMappingURL=leaflet-src.esm.js.map

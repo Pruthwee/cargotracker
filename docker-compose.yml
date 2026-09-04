@@ -1,35 +1,66 @@
-# To run the cloud version locally, first build the application using:
-#
-#  ./mvnw clean package -Pcloud
-#      -DpostgreSqlJdbcUrl="jdbc:postgresql://postgres:5432/postgres"
-#      -DpostgreSqlUsername="cargotracker" -DpostgreSqlPassword="cargotracker"
-#
-# Then start the services with:
-#
-#  docker-compose up
-#
-version: '3.8'
+version: "3.8"
+
+# =============================================================================
+# Docker Compose for Eclipse Cargo Tracker
+# Application service ONLY - no databases or infrastructure services
+# External services (PostgreSQL, etc.) are provided separately via env vars
+# =============================================================================
 
 services:
-  postgres:
-    image: postgres:16
-    environment:
-      POSTGRES_USER: cargotracker
-      POSTGRES_PASSWORD: cargotracker
-      POSTGRES_DB: postgres
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-
-  cargotracker:
-    build: .
+  cargo-tracker:
+    image: cargo-tracker:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cargo-tracker-app
     ports:
       - "8080:8080"
-    depends_on:
-      - postgres
     environment:
-      DB_HOST: postgres
+      # JVM options for container
+      JAVA_OPTS: "-Xmx512m -Xms256m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Djava.net.preferIPv4Stack=true -Dfile.encoding=UTF-8 -Duser.timezone=UTC"
+      # Timezone
+      TZ: "UTC"
+      # Database configuration - override with actual values
+      DB_DRIVER_CLASS: "${DB_DRIVER_CLASS:-org.h2.jdbcx.JdbcDataSource}"
+      DB_JDBC_URL: "${DB_JDBC_URL:-jdbc:h2:file:/app/cargo-tracker-data/cargo-tracker-database}"
+      DB_USER: "${DB_USER:-}"
+      DB_PASSWORD: "${DB_PASSWORD:-}"
+      # Graph traversal service URL
+      GRAPH_TRAVERSAL_URL: "${GRAPH_TRAVERSAL_URL:-http://localhost:8080/cargo-tracker/rest/graph-traversal/shortest-path}"
+      # AWS / ElastiCache Memcached (if applicable)
+      MEMCACHED_ENDPOINT: "${MEMCACHED_ENDPOINT:-}"
+      # CSS minification policy (from SSM in ECS)
+      CSS_MINIFICATION_REQUIRED: "${CSS_MINIFICATION_REQUIRED:-true}"
+      CSS_MAX_UNMINIFIED_SIZE_BYTES: "${CSS_MAX_UNMINIFIED_SIZE_BYTES:-10240}"
+    volumes:
+      - cargo-tracker-data:/app/cargo-tracker-data
+      - cargo-tracker-logs:/app/logs
+    networks:
+      - cargo-tracker-network
+    restart: unless-stopped
+    # Health check with generous start period for JVM/Payara startup
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/cargo-tracker/rest/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 1024M
+        reservations:
+          cpus: "0.25"
+          memory: 512M
 
 volumes:
-  postgres-data:
+  cargo-tracker-data:
+    driver: local
+  cargo-tracker-logs:
+    driver: local
+
+networks:
+  cargo-tracker-network:
+    driver: bridge

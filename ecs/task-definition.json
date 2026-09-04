@@ -1,0 +1,86 @@
+{
+  "family": "cargo-tracker-task",
+  "requiresCompatibilities": ["FARGATE"],
+  "networkMode": "awsvpc",
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::{{ACCOUNT_ID}}:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::{{ACCOUNT_ID}}:role/ecsTaskRole",
+  "containerDefinitions": [
+    {
+      "name": "cargo-tracker",
+      "image": "{{IMAGE_URI}}",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 8080,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {
+          "name": "JAVA_OPTS",
+          "value": "-Xmx512m -Xms256m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:+UnlockExperimentalVMOptions -Djava.net.preferIPv4Stack=true -Dfile.encoding=UTF-8 -Duser.timezone=UTC"
+        },
+        {
+          "name": "TZ",
+          "value": "UTC"
+        },
+        {
+          "name": "DB_DRIVER_CLASS",
+          "value": "org.postgresql.ds.PGPoolingDataSource"
+        },
+        {
+          "name": "DB_JDBC_URL",
+          "value": "{{DB_JDBC_URL}}"
+        },
+        {
+          "name": "DB_USER",
+          "value": "{{DB_USER}}"
+        },
+        {
+          "name": "GRAPH_TRAVERSAL_URL",
+          "value": "http://localhost:8080/cargo-tracker/rest/graph-traversal/shortest-path"
+        },
+        {
+          "name": "CSS_MINIFICATION_REQUIRED",
+          "value": "true"
+        },
+        {
+          "name": "CSS_MAX_UNMINIFIED_SIZE_BYTES",
+          "value": "10240"
+        },
+        {
+          "name": "CSS_MINIFICATION_POLICY_SSM_PATH",
+          "value": "/cargo-tracker/css/minification-policy"
+        },
+        {
+          "name": "MEMCACHED_ENDPOINT",
+          "value": "{{MEMCACHED_ENDPOINT}}"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "DB_PASSWORD",
+          "valueFrom": "arn:aws:ssm:{{AWS_REGION}}:{{ACCOUNT_ID}}:parameter/cargo-tracker/db/password"
+        },
+        {
+          "name": "CSS_MINIFICATION_POLICY",
+          "valueFrom": "arn:aws:ssm:{{AWS_REGION}}:{{ACCOUNT_ID}}:parameter/cargo-tracker/css/minification-policy"
+        },
+        {
+          "name": "CSS_MAX_FILE_SIZE_THRESHOLD",
+          "valueFrom": "arn:aws:ssm:{{AWS_REGION}}:{{ACCOUNT_ID}}:parameter/cargo-tracker/css/max-file-size-threshold"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/cargo-tracker",
+          "awslogs-region": "{{AWS_REGION}}",
+          "awslogs-stream-prefix": "ecs"
+        }
+      }
+    }
+  ]
+}

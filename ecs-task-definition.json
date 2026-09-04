@@ -1,0 +1,64 @@
+{
+  "family": "cargo-tracker",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "${ECS_EXECUTION_ROLE_ARN}",
+  "taskRoleArn": "${ECS_TASK_ROLE_ARN}",
+  "containerDefinitions": [
+    {
+      "name": "cargo-tracker",
+      "image": "${ECR_IMAGE_URI}",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 8080,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {
+          "name": "CSS_MINIFICATION_REQUIRED",
+          "value": "true"
+        },
+        {
+          "name": "CSS_MAX_UNMINIFIED_SIZE_BYTES",
+          "value": "10240"
+        },
+        {
+          "name": "CSS_MINIFICATION_POLICY_SSM_PATH",
+          "value": "/cargo-tracker/css/minification-policy"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "CSS_MINIFICATION_POLICY",
+          "valueFrom": "arn:aws:ssm:${AWS_REGION}:${AWS_ACCOUNT_ID}:parameter/cargo-tracker/css/minification-policy"
+        },
+        {
+          "name": "CSS_MAX_FILE_SIZE_THRESHOLD",
+          "valueFrom": "arn:aws:ssm:${AWS_REGION}:${AWS_ACCOUNT_ID}:parameter/cargo-tracker/css/max-file-size-threshold"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/cargo-tracker",
+          "awslogs-region": "${AWS_REGION}",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "healthCheck": {
+        "command": [
+          "CMD-SHELL",
+          "curl -f http://localhost:8080/cargo-tracker/rest/health || exit 1"
+        ],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 60
+      }
+    }
+  ]
+}

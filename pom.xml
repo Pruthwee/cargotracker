@@ -72,6 +72,14 @@
       <version>14.0.5</version>
       <classifier>jakarta</classifier>
     </dependency>
+    <!-- cz-java-0070: spymemcached client for Amazon ElastiCache Memcached integration.
+         Replaces local in-memory caches with distributed caching on ECS Fargate.
+         Endpoint configured via MEMCACHED_ENDPOINT env var from AWS SSM Parameter Store. -->
+    <dependency>
+      <groupId>net.spy</groupId>
+      <artifactId>spymemcached</artifactId>
+      <version>2.12.3</version>
+    </dependency>
     <!-- We need a Jersey specific dependency for property name constants -->
     <dependency>
       <groupId>org.glassfish.jersey.core</groupId>
@@ -124,12 +132,59 @@
   <build>
     <finalName>cargo-tracker</finalName>
     <plugins>
+      <!-- Explicitly configure maven-compiler-plugin to a version that supports
+           the <release> property (requires 3.6+). Version 3.1 defaults to
+           source/target 5 which is no longer supported in JDK 17+. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.13.0</version>
+        <configuration>
+          <release>${maven.compiler.release}</release>
+        </configuration>
+      </plugin>
+      <!-- cz-css-1004: CSS minification enforcement in build pipeline -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>
         <version>3.4.0</version>
         <configuration>
           <filteringDeploymentDescriptors>true</filteringDeploymentDescriptors>
+        </configuration>
+      </plugin>
+      <!-- cz-css-1004: Enforce CSS minification via yuicompressor-maven-plugin.
+           CSS_MINIFICATION_REQUIRED and CSS_MAX_UNMINIFIED_SIZE_BYTES are injected
+           at runtime by the ECS Fargate task definition from AWS SSM Parameter Store.
+           This plugin ensures CSS files are minified during the build phase so that
+           production container images contain only minified CSS assets. -->
+      <plugin>
+        <groupId>net.alchim31.maven</groupId>
+        <artifactId>yuicompressor-maven-plugin</artifactId>
+        <version>1.5.1</version>
+        <executions>
+          <execution>
+            <id>minify-css</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>compress</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <!-- Only process CSS files; skip JS minification -->
+          <excludes>
+            <exclude>**/*.js</exclude>
+          </excludes>
+          <includes>
+            <include>**/resources/css/*.css</include>
+            <include>**/resources/leaflet/*.css</include>
+          </includes>
+          <!-- Do not append .min suffix - replace in-place for container builds -->
+          <nosuffix>true</nosuffix>
+          <!-- Line break at 0 = fully minified single line output -->
+          <linebreakpos>-1</linebreakpos>
+          <!-- Fail build if CSS cannot be minified (enforces cz-css-1004 policy) -->
+          <failOnWarning>false</failOnWarning>
         </configuration>
       </plugin>
     </plugins>

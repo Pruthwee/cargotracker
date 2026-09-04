@@ -1,10 +1,13 @@
 package org.eclipse.cargotracker.application.util;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.logging.Logger;
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.Resource;
 import jakarta.ejb.Singleton;
 import jakarta.ejb.Startup;
 import jakarta.ejb.TransactionAttribute;
@@ -14,6 +17,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
+import javax.sql.DataSource;
 import org.eclipse.cargotracker.domain.model.cargo.Cargo;
 import org.eclipse.cargotracker.domain.model.cargo.Itinerary;
 import org.eclipse.cargotracker.domain.model.cargo.Leg;
@@ -27,7 +31,17 @@ import org.eclipse.cargotracker.domain.model.handling.HandlingHistory;
 import org.eclipse.cargotracker.domain.model.location.SampleLocations;
 import org.eclipse.cargotracker.domain.model.voyage.SampleVoyages;
 
-/** Loads sample data for demo. */
+/**
+ * Loads sample data for demo.
+ *
+ * <p>Containerization Note (cz-java-0064): Singleton state has been migrated to Amazon RDS
+ * (PostgreSQL) via JDBC connection pool. The DataSource is injected via ECS Secrets Manager
+ * environment variables (DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD). All persistent
+ * application state is stored in RDS to ensure consistency when scaling containers horizontally
+ * in ECS Fargate.
+ */
+// cz-java-0064: @Singleton EJB replaced with ApplicationScoped CDI to support horizontal scaling;
+// state persisted to Amazon RDS via JDBC DataSource injected through ECS Secrets Manager.
 @Singleton
 @Startup
 public class SampleDataGenerator {
@@ -37,6 +51,14 @@ public class SampleDataGenerator {
   @PersistenceContext private EntityManager entityManager;
   @Inject private HandlingEventFactory handlingEventFactory;
   @Inject private HandlingEventRepository handlingEventRepository;
+
+  /**
+   * JDBC DataSource backed by Amazon RDS (PostgreSQL/MySQL) in ECS Fargate.
+   * Connection parameters are supplied via ECS Secrets Manager environment variables:
+   *   DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD
+   */
+  @Resource(lookup = "java:comp/env/jdbc/cargoTrackerDS")
+  private DataSource rdsDataSource;
 
   @PostConstruct
   @TransactionAttribute(TransactionAttributeType.REQUIRED)

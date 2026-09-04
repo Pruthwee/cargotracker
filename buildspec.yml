@@ -1,0 +1,84 @@
+version: 0.2
+
+# AWS CodeBuild buildspec for cargo-tracker ECS Fargate deployment
+# Includes HTML minification phase to reduce container image size and
+# improve Kubernetes/ECS pod startup times by removing unnecessary
+# whitespace and comments from HTML files before packaging.
+
+phases:
+  install:
+    runtime-versions:
+      java: corretto11
+    commands:
+      - echo "Installing HTML minification tool..."
+      - npm install -g html-minifier-terser
+
+  pre_build:
+    commands:
+      - echo "Pre-build phase started on $(date)"
+      - echo "Logging in to Amazon ECR..."
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+      - REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - IMAGE_TAG=${COMMIT_HASH:=latest}
+
+  build:
+    commands:
+      - echo "Build phase started on $(date)"
+
+      # ---------------------------------------------------------------
+      # HTML Minification Step (cz-html-1009)
+      # Minify all HTML/package.html files to remove whitespace and
+      # comments, reducing container image size and improving ECS
+      # Fargate pod startup performance.
+      # ---------------------------------------------------------------
+      - echo "Minifying HTML files for production container..."
+      - |
+        find src/main/java -name "*.html" -type f | while read htmlfile; do
+          echo "Minifying: $htmlfile"
+          html-minifier-terser \
+            --collapse-whitespace \
+            --remove-comments \
+            --remove-optional-tags \
+            --remove-redundant-attributes \
+            --remove-script-type-attributes \
+            --remove-tag-whitespace \
+            --use-short-doctype \
+            --minify-js true \
+            --minify-css true \
+            "$htmlfile" -o "$htmlfile"
+        done
+      - echo "HTML minification complete."
+
+      # ---------------------------------------------------------------
+      # Maven Build
+      # ---------------------------------------------------------------
+      - echo "Building application with Maven..."
+      - ./mvnw clean package -DskipTests --file pom.xml
+
+      # ---------------------------------------------------------------
+      # Docker Image Build
+      # ---------------------------------------------------------------
+      - echo "Building Docker image..."
+      - docker build -t $REPOSITORY_URI:latest .
+      - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
+
+  post_build:
+    commands:
+      - echo "Post-build phase started on $(date)"
+      - echo "Pushing Docker image to ECR..."
+      - docker push $REPOSITORY_URI:latest
+      - docker push $REPOSITORY_URI:$IMAGE_TAG
+      - echo "Writing image definitions file..."
+      - printf '[{"name":"%s","imageUri":"%s"}]' "$CONTAINER_NAME" "$REPOSITORY_URI:$IMAGE_TAG" > imagedefinitions.json
+      - echo "Build completed on $(date)"
+
+artifacts:
+  files:
+    - imagedefinitions.json
+    - target/cargo-tracker.war
+
+cache:
+  paths:
+    - '/root/.m2/**/*'
+    - '/root/.npm/**/*'

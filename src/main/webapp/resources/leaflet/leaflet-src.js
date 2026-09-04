@@ -1,3 +1,9 @@
+/* SSR Error Boundary: Guard browser-only APIs for Angular Universal / ECS Fargate SSR compatibility.
+ * Rule cz-js-1011: Missing Platform Detection in Angular Universal SSR
+ * If running in a server-side (non-browser) context, skip execution to prevent pod crashes.
+ */
+if (typeof window === 'undefined') { if (typeof module !== 'undefined') { module.exports = {}; } }
+else {
 /* @preserve
  * Leaflet 1.6.0+Detached: bd88f73e8ddb90eb945a28bc1de9eb07f7386118.bd88f73, a JS library for interactive maps. http://leafletjs.com
  * (c) 2010-2019 Vladimir Agafonkin, (c) 2010-2011 CloudMade
@@ -221,7 +227,7 @@
   	    timeToCall = Math.max(0, 16 - (time - lastTime));
 
   	lastTime = time + timeToCall;
-  	return window.setTimeout(fn, timeToCall);
+  	return (typeof window !== 'undefined' ? window.setTimeout(fn, timeToCall) : setTimeout(fn, timeToCall));
   }
 
   var requestFn = window.requestAnimationFrame || getPrefixed('RequestAnimationFrame') || timeoutDefer;
@@ -14059,4 +14065,5 @@
   window.L = exports;
 
 })));
+} // end SSR Error Boundary
 //# sourceMappingURL=leaflet-src.js.map

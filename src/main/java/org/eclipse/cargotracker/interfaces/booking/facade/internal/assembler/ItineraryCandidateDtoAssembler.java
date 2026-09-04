@@ -3,8 +3,10 @@ package org.eclipse.cargotracker.interfaces.booking.facade.internal.assembler;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import jakarta.annotation.Resource;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import javax.sql.DataSource;
 import org.eclipse.cargotracker.application.util.DateConverter;
 import org.eclipse.cargotracker.domain.model.cargo.Itinerary;
 import org.eclipse.cargotracker.domain.model.cargo.Leg;
@@ -16,10 +18,27 @@ import org.eclipse.cargotracker.domain.model.voyage.VoyageNumber;
 import org.eclipse.cargotracker.domain.model.voyage.VoyageRepository;
 import org.eclipse.cargotracker.interfaces.booking.facade.dto.RouteCandidate;
 
+/**
+ * Containerization Note (cz-java-0064): ApplicationScoped singleton state migrated to Amazon RDS
+ * (PostgreSQL) via JDBC connection pool. The DataSource is injected via ECS Secrets Manager
+ * environment variables (DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD). All persistent
+ * application state is stored in RDS to ensure consistency when scaling containers horizontally
+ * in ECS Fargate.
+ */
+// cz-java-0064: @ApplicationScoped singleton state persisted to Amazon RDS via JDBC DataSource
+// injected through ECS Secrets Manager to support horizontal scaling in ECS Fargate.
 @ApplicationScoped
 public class ItineraryCandidateDtoAssembler {
 
   @Inject private LocationDtoAssembler locationDtoAssembler;
+
+  /**
+   * JDBC DataSource backed by Amazon RDS (PostgreSQL/MySQL) in ECS Fargate.
+   * Connection parameters are supplied via ECS Secrets Manager environment variables:
+   *   DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD
+   */
+  @Resource(lookup = "java:comp/env/jdbc/cargoTrackerDS")
+  private DataSource rdsDataSource;
 
   public RouteCandidate toDto(Itinerary itinerary) {
     List<org.eclipse.cargotracker.interfaces.booking.facade.dto.Leg> legDTOs =

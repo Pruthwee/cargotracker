@@ -1,3 +1,12 @@
+/* SSR Error Boundary: Guard browser-only APIs for Angular Universal / ECS Fargate SSR compatibility.
+ * Rule cz-js-1011: Missing Platform Detection in Angular Universal SSR
+ * If running in a server-side (non-browser) context, skip execution to prevent pod crashes.
+ */
+if (typeof window === 'undefined' || typeof document === 'undefined') {
+  if (typeof module === 'object' && typeof module.exports === 'object') {
+    module.exports = { config: function(){}, show: function(){}, hide: function(){}, progress: function(){ return 0; } };
+  }
+} else {
 /**
  * @license MIT
  * topbar 2.0.0, 2023-02-04
@@ -33,7 +42,7 @@
       className: null,
     },
     repaint = function () {
-      canvas.width = window.innerWidth;
+      canvas.width = (typeof window !== 'undefined' && window.innerWidth) ? window.innerWidth : 0;
       canvas.height = options.barThickness * 5; // need space for shadow
 
       var ctx = canvas.getContext("2d");
@@ -135,4 +144,5 @@
   } else {
     this.topbar = topbar;
   }
+} // end SSR Error Boundary
 }.call(this, window, document));

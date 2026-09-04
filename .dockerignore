@@ -1,0 +1,64 @@
+# Docker ignore file for Eclipse Cargo Tracker
+# Excludes build artifacts, IDE files, and wrapper scripts from Docker build context
+
+# Maven build output
+target/
+
+# Maven wrapper files - MUST be excluded (use system mvn in Docker)
+mvnw
+mvnw.cmd
+.mvn/
+
+# Version control
+.git/
+.gitignore
+.github/
+
+# Documentation
+*.md
+LICENSE.md
+CONTRIBUTING.md
+README.md
+
+# IDE and editor files
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.classpath
+.project
+.settings/
+*.swp
+*.swo
+*~
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Test files
+src/test/
+
+# CI/CD files
+.github/
+nightly.yml
+*.yml.bak
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.bak
+*.orig
+
+# Node modules (if any frontend tooling)
+node_modules/
+
+# Local configuration overrides
+*.local
+.env.local
+.env.*.local

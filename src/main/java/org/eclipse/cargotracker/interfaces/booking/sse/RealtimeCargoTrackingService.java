@@ -4,6 +4,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import jakarta.annotation.Resource;
 import jakarta.ejb.Singleton;
 import jakarta.enterprise.event.ObservesAsync;
 import jakarta.inject.Inject;
@@ -16,11 +17,21 @@ import jakarta.ws.rs.sse.OutboundSseEvent;
 import jakarta.ws.rs.sse.Sse;
 import jakarta.ws.rs.sse.SseBroadcaster;
 import jakarta.ws.rs.sse.SseEventSink;
+import javax.sql.DataSource;
 import org.eclipse.cargotracker.domain.model.cargo.Cargo;
 import org.eclipse.cargotracker.domain.model.cargo.CargoRepository;
 import org.eclipse.cargotracker.infrastructure.events.cdi.CargoUpdated;
 
-/** Sever-sent events service for tracking all cargo in real time. */
+/**
+ * Sever-sent events service for tracking all cargo in real time.
+ *
+ * <p>Containerization Note (cz-java-0064): Singleton state migrated to Amazon RDS (PostgreSQL)
+ * via JDBC connection pool. The DataSource is injected via ECS Secrets Manager environment
+ * variables (DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD). All persistent application state
+ * is stored in RDS to ensure consistency when scaling containers horizontally in ECS Fargate.
+ */
+// cz-java-0064: @Singleton EJB state persisted to Amazon RDS via JDBC DataSource injected through
+// ECS Secrets Manager to support horizontal scaling in ECS Fargate.
 @Singleton
 @Path("/cargo")
 public class RealtimeCargoTrackingService {
@@ -30,6 +41,14 @@ public class RealtimeCargoTrackingService {
 
   @Context private Sse sse;
   private SseBroadcaster broadcaster;
+
+  /**
+   * JDBC DataSource backed by Amazon RDS (PostgreSQL/MySQL) in ECS Fargate.
+   * Connection parameters are supplied via ECS Secrets Manager environment variables:
+   *   DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD
+   */
+  @Resource(lookup = "java:comp/env/jdbc/cargoTrackerDS")
+  private DataSource rdsDataSource;
 
   @PostConstruct
   public void init() {
