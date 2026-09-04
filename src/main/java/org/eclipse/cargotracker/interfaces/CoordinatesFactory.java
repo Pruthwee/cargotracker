@@ -15,19 +15,28 @@ import static org.eclipse.cargotracker.domain.model.location.SampleLocations.SHA
 import static org.eclipse.cargotracker.domain.model.location.SampleLocations.STOCKHOLM;
 import static org.eclipse.cargotracker.domain.model.location.SampleLocations.TOKYO;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import org.eclipse.cargotracker.domain.model.location.Location;
 import org.eclipse.cargotracker.domain.model.location.UnLocode;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisPoolConfig;
 
 /**
- * At the moment, coordinates are produced by a simple factory. It may be converted to a repository
- * if coordinates become a domain layer concern.
+ * At the moment, coordinates are produced by a simple factory backed by Amazon ElastiCache (Redis)
+ * for horizontal scalability on EKS. Connection details are injected via environment variables
+ * REDIS_HOST and REDIS_PORT (Kubernetes ConfigMap/Secret with IRSA-secured access).
+ *
+ * <p>cz-java-0070: Replaced local in-process HashMap cache with Amazon ElastiCache (Redis) to
+ * ensure coordinates data is shared across all horizontally-scaled container replicas.
  */
 public class CoordinatesFactory {
 
-  private static final Map<String, Coordinates> COORDINATES_MAP;
+  // cz-java-0070: Replaced local HashMap cache with Amazon ElastiCache (Redis) JedisPool.
+  // Connection details are injected via REDIS_HOST and REDIS_PORT environment variables
+  // (Kubernetes ConfigMap/Secret with IRSA-secured access on EKS).
+  private static final JedisPool JEDIS_POOL;
+
+  private static final String REDIS_KEY_PREFIX = "coordinates:";
 
   private CoordinatesFactory() {
     /* Prevent instantiation. */
@@ -42,28 +51,43 @@ public class CoordinatesFactory {
   }
 
   public static Coordinates find(String unLocode) {
-    return COORDINATES_MAP.get(unLocode);
+    try (Jedis jedis = JEDIS_POOL.getResource()) {
+      String value = jedis.get(REDIS_KEY_PREFIX + unLocode);
+      if (value == null) {
+        return null;
+      }
+      String[] parts = value.split(",");
+      return new Coordinates(Double.parseDouble(parts[0]), Double.parseDouble(parts[1]));
+    }
   }
 
   static {
-    Map<String, Coordinates> map = new HashMap<>();
+    String redisHost = System.getenv("REDIS_HOST") != null ? System.getenv("REDIS_HOST") : "localhost";
+    int redisPort = System.getenv("REDIS_PORT") != null ? Integer.parseInt(System.getenv("REDIS_PORT")) : 6379;
 
+    JedisPoolConfig poolConfig = new JedisPoolConfig();
+    poolConfig.setMaxTotal(10);
+    poolConfig.setMaxIdle(5);
+    poolConfig.setMinIdle(1);
+    JEDIS_POOL = new JedisPool(poolConfig, redisHost, redisPort);
+
+    // Seed ElastiCache with coordinates data on startup.
     // TODO [Clean Code] See if there is a service to get the latitude/longitude data from.
-    map.put(HONGKONG.getUnLocode().getIdString(), new Coordinates(22, 114));
-    map.put(MELBOURNE.getUnLocode().getIdString(), new Coordinates(-38, 145));
-    map.put(STOCKHOLM.getUnLocode().getIdString(), new Coordinates(59, 18));
-    map.put(HELSINKI.getUnLocode().getIdString(), new Coordinates(60, 25));
-    map.put(CHICAGO.getUnLocode().getIdString(), new Coordinates(42, -88));
-    map.put(TOKYO.getUnLocode().getIdString(), new Coordinates(36, 140));
-    map.put(HAMBURG.getUnLocode().getIdString(), new Coordinates(54, 10));
-    map.put(SHANGHAI.getUnLocode().getIdString(), new Coordinates(31, 121));
-    map.put(ROTTERDAM.getUnLocode().getIdString(), new Coordinates(52, 5));
-    map.put(GOTHENBURG.getUnLocode().getIdString(), new Coordinates(58, 12));
-    map.put(HANGZOU.getUnLocode().getIdString(), new Coordinates(30, 120));
-    map.put(NEWYORK.getUnLocode().getIdString(), new Coordinates(41, -74));
-    map.put(DALLAS.getUnLocode().getIdString(), new Coordinates(33, -97));
-    map.put(UNKNOWN.getUnLocode().getIdString(), new Coordinates(-90, 0)); // The South Pole.
-
-    COORDINATES_MAP = Collections.unmodifiableMap(map);
+    try (Jedis jedis = JEDIS_POOL.getResource()) {
+      jedis.set(REDIS_KEY_PREFIX + HONGKONG.getUnLocode().getIdString(), "22.0,114.0");
+      jedis.set(REDIS_KEY_PREFIX + MELBOURNE.getUnLocode().getIdString(), "-38.0,145.0");
+      jedis.set(REDIS_KEY_PREFIX + STOCKHOLM.getUnLocode().getIdString(), "59.0,18.0");
+      jedis.set(REDIS_KEY_PREFIX + HELSINKI.getUnLocode().getIdString(), "60.0,25.0");
+      jedis.set(REDIS_KEY_PREFIX + CHICAGO.getUnLocode().getIdString(), "42.0,-88.0");
+      jedis.set(REDIS_KEY_PREFIX + TOKYO.getUnLocode().getIdString(), "36.0,140.0");
+      jedis.set(REDIS_KEY_PREFIX + HAMBURG.getUnLocode().getIdString(), "54.0,10.0");
+      jedis.set(REDIS_KEY_PREFIX + SHANGHAI.getUnLocode().getIdString(), "31.0,121.0");
+      jedis.set(REDIS_KEY_PREFIX + ROTTERDAM.getUnLocode().getIdString(), "52.0,5.0");
+      jedis.set(REDIS_KEY_PREFIX + GOTHENBURG.getUnLocode().getIdString(), "58.0,12.0");
+      jedis.set(REDIS_KEY_PREFIX + HANGZOU.getUnLocode().getIdString(), "30.0,120.0");
+      jedis.set(REDIS_KEY_PREFIX + NEWYORK.getUnLocode().getIdString(), "41.0,-74.0");
+      jedis.set(REDIS_KEY_PREFIX + DALLAS.getUnLocode().getIdString(), "33.0,-97.0");
+      jedis.set(REDIS_KEY_PREFIX + UNKNOWN.getUnLocode().getIdString(), "-90.0,0.0");
+    }
   }
 }

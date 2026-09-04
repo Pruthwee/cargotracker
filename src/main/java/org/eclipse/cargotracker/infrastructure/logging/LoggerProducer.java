@@ -2,6 +2,8 @@ package org.eclipse.cargotracker.infrastructure.logging;
 
 import java.io.Serializable;
 import java.util.logging.Logger;
+// cz-java-0064: @ApplicationScoped retained (already CDI-scoped, not EJB @Singleton).
+// Stateless producer bean - no mutable singleton state. Compliant with EKS horizontal scaling.
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Produces;
 import jakarta.enterprise.inject.spi.InjectionPoint;

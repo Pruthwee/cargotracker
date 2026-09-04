@@ -3,6 +3,8 @@ package org.eclipse.cargotracker.interfaces.booking.facade.internal.assembler;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+// cz-java-0064: @ApplicationScoped retained (already CDI-scoped, not EJB @Singleton).
+// Stateless assembler - no mutable singleton state. Compliant with EKS horizontal scaling.
 import jakarta.enterprise.context.ApplicationScoped;
 import org.eclipse.cargotracker.domain.model.location.Location;
 

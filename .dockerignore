@@ -1,0 +1,61 @@
+# Docker ignore for cargo-tracker Jakarta EE application
+# Build artifacts
+target/
+*.war
+*.jar
+
+# Maven wrapper - NEVER include in Docker builds
+mvnw
+mvnw.cmd
+.mvn/
+
+# Gradle wrapper - NEVER include in Docker builds
+gradlew
+gradlew.bat
+gradle/wrapper/
+
+# Version control
+.git/
+.gitignore
+.github/
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.classpath
+.project
+.settings/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Documentation
+*.md
+LICENSE.md
+CONTRIBUTING.md
+
+# Test files
+src/test/
+
+# Node modules (used only for CSS/HTML minification in Docker build stages)
+node_modules/
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+
+# Kubernetes and deployment files (not needed in image)
+kubernetes/
+scripts/
+docs/
+cargo-tracker.yml
+nightly.yml

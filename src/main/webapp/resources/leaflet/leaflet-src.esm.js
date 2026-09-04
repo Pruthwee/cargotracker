@@ -218,7 +218,7 @@ function timeoutDefer(fn) {
 	return window.setTimeout(fn, timeToCall);
 }
 
-var requestFn = window.requestAnimationFrame || getPrefixed('RequestAnimationFrame') || timeoutDefer;
+var requestFn = (typeof window !== 'undefined' && window.requestAnimationFrame) ? window.requestAnimationFrame : (getPrefixed('RequestAnimationFrame') || timeoutDefer);
 var cancelFn = window.cancelAnimationFrame || getPrefixed('CancelAnimationFrame') ||
 		getPrefixed('CancelRequestAnimationFrame') || function (id) { window.clearTimeout(id); };
 

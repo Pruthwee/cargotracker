@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jakarta.annotation.Resource;
+// cz-java-0064: @ApplicationScoped retained (already CDI-scoped, not EJB @Singleton).
+// Stateless JMS event publisher - no mutable singleton state. Compliant with EKS horizontal scaling.
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.jms.Destination;

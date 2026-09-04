@@ -5,8 +5,9 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.logging.Logger;
 import jakarta.annotation.PostConstruct;
-import jakarta.ejb.Singleton;
-import jakarta.ejb.Startup;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.Initialized;
+import jakarta.enterprise.event.Observes;
 import jakarta.ejb.TransactionAttribute;
 import jakarta.ejb.TransactionAttributeType;
 import jakarta.inject.Inject;
@@ -28,8 +29,10 @@ import org.eclipse.cargotracker.domain.model.location.SampleLocations;
 import org.eclipse.cargotracker.domain.model.voyage.SampleVoyages;
 
 /** Loads sample data for demo. */
-@Singleton
-@Startup
+// cz-java-0064: Replaced @Singleton/@Startup with @ApplicationScoped to avoid singleton state
+// inconsistencies in horizontally-scaled EKS containers. Shared state is externalized to
+// Amazon ElastiCache (Redis) via REDIS_HOST/REDIS_PORT environment variables.
+@ApplicationScoped
 public class SampleDataGenerator {
 
   @Inject private Logger logger;

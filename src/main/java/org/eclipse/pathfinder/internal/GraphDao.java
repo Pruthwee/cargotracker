@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+// cz-java-0064: @ApplicationScoped retained (already CDI-scoped, not EJB @Singleton).
+// Stateless graph DAO - no mutable singleton state. Compliant with EKS horizontal scaling.
 import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped

@@ -5,6 +5,8 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+// cz-java-0064: @ApplicationScoped retained (already CDI-scoped, not EJB @Singleton).
+// Stateless facade - no mutable singleton state. Compliant with EKS horizontal scaling.
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.cargotracker.application.BookingService;

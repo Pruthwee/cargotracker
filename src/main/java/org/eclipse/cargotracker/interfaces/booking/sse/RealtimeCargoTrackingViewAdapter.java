@@ -1,18 +1,29 @@
 package org.eclipse.cargotracker.interfaces.booking.sse;
 
-import java.util.EnumMap;
-import java.util.Map;
 import org.eclipse.cargotracker.domain.model.cargo.Cargo;
 import org.eclipse.cargotracker.domain.model.cargo.RoutingStatus;
 import org.eclipse.cargotracker.domain.model.cargo.TransportStatus;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisPoolConfig;
 
-/** View adapter for displaying a cargo in a realtime tracking context. */
+/**
+ * View adapter for displaying a cargo in a realtime tracking context.
+ *
+ * <p>cz-java-0070: Replaced local in-process EnumMap caches (routingStatusLabels,
+ * transportStatusLabels) with Amazon ElastiCache (Redis) to ensure label data is shared across
+ * all horizontally-scaled container replicas on EKS. Connection details are injected via
+ * REDIS_HOST and REDIS_PORT environment variables (Kubernetes ConfigMap/Secret with
+ * IRSA-secured access).
+ */
 public class RealtimeCargoTrackingViewAdapter {
 
-  private static final Map<RoutingStatus, String> routingStatusLabels =
-      new EnumMap<>(RoutingStatus.class);
-  private static final Map<TransportStatus, String> transportStatusLabels =
-      new EnumMap<>(TransportStatus.class);
+  // cz-java-0070: Replaced local EnumMap cache with Amazon ElastiCache (Redis) JedisPool.
+  // REDIS_HOST and REDIS_PORT are injected via Kubernetes ConfigMap/Secret environment variables.
+  private static final JedisPool JEDIS_POOL;
+
+  private static final String ROUTING_STATUS_KEY_PREFIX = "routing_status_label:";
+  private static final String TRANSPORT_STATUS_KEY_PREFIX = "transport_status_label:";
 
   private final Cargo cargo;
 
@@ -25,7 +36,9 @@ public class RealtimeCargoTrackingViewAdapter {
   }
 
   public String getRoutingStatus() {
-    return routingStatusLabels.get(cargo.getDelivery().getRoutingStatus());
+    try (Jedis jedis = JEDIS_POOL.getResource()) {
+      return jedis.get(ROUTING_STATUS_KEY_PREFIX + cargo.getDelivery().getRoutingStatus().name());
+    }
   }
 
   public boolean isMisdirected() {
@@ -33,7 +46,9 @@ public class RealtimeCargoTrackingViewAdapter {
   }
 
   public String getTransportStatus() {
-    return transportStatusLabels.get(cargo.getDelivery().getTransportStatus());
+    try (Jedis jedis = JEDIS_POOL.getResource()) {
+      return jedis.get(TRANSPORT_STATUS_KEY_PREFIX + cargo.getDelivery().getTransportStatus().name());
+    }
   }
 
   public boolean isAtDestination() {
@@ -73,14 +88,28 @@ public class RealtimeCargoTrackingViewAdapter {
   }
 
   static {
-    routingStatusLabels.put(RoutingStatus.NOT_ROUTED, "Not routed");
-    routingStatusLabels.put(RoutingStatus.ROUTED, "Routed");
-    routingStatusLabels.put(RoutingStatus.MISROUTED, "Misrouted");
+    String redisHost = System.getenv("REDIS_HOST") != null ? System.getenv("REDIS_HOST") : "localhost";
+    int redisPort = System.getenv("REDIS_PORT") != null ? Integer.parseInt(System.getenv("REDIS_PORT")) : 6379;
 
-    transportStatusLabels.put(TransportStatus.NOT_RECEIVED, "Not received");
-    transportStatusLabels.put(TransportStatus.IN_PORT, "In port");
-    transportStatusLabels.put(TransportStatus.ONBOARD_CARRIER, "Onboard carrier");
-    transportStatusLabels.put(TransportStatus.CLAIMED, "Claimed");
-    transportStatusLabels.put(TransportStatus.UNKNOWN, "Unknown");
+    JedisPoolConfig poolConfig = new JedisPoolConfig();
+    poolConfig.setMaxTotal(10);
+    poolConfig.setMaxIdle(5);
+    poolConfig.setMinIdle(1);
+    JEDIS_POOL = new JedisPool(poolConfig, redisHost, redisPort);
+
+    // Seed ElastiCache with routing and transport status label data on startup.
+    try (Jedis jedis = JEDIS_POOL.getResource()) {
+      // cz-java-0070: Routing status labels seeded into Amazon ElastiCache (Redis).
+      jedis.set(ROUTING_STATUS_KEY_PREFIX + RoutingStatus.NOT_ROUTED.name(), "Not routed");
+      jedis.set(ROUTING_STATUS_KEY_PREFIX + RoutingStatus.ROUTED.name(), "Routed");
+      jedis.set(ROUTING_STATUS_KEY_PREFIX + RoutingStatus.MISROUTED.name(), "Misrouted");
+
+      // cz-java-0070: Transport status labels seeded into Amazon ElastiCache (Redis).
+      jedis.set(TRANSPORT_STATUS_KEY_PREFIX + TransportStatus.NOT_RECEIVED.name(), "Not received");
+      jedis.set(TRANSPORT_STATUS_KEY_PREFIX + TransportStatus.IN_PORT.name(), "In port");
+      jedis.set(TRANSPORT_STATUS_KEY_PREFIX + TransportStatus.ONBOARD_CARRIER.name(), "Onboard carrier");
+      jedis.set(TRANSPORT_STATUS_KEY_PREFIX + TransportStatus.CLAIMED.name(), "Claimed");
+      jedis.set(TRANSPORT_STATUS_KEY_PREFIX + TransportStatus.UNKNOWN.name(), "Unknown");
+    }
   }
 }

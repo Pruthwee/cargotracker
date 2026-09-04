@@ -1,6 +1,8 @@
 package org.eclipse.cargotracker.infrastructure.persistence.jpa;
 
 import java.io.Serializable;
+// cz-java-0064: @ApplicationScoped retained (already CDI-scoped, not EJB @Singleton).
+// Stateless JPA repository - no mutable singleton state. Compliant with EKS horizontal scaling.
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
