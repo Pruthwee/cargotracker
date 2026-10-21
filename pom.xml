@@ -23,7 +23,7 @@
     <url>https://github.com/eclipse-ee4j/cargotracker/issues</url>
   </issueManagement>
   <properties>
-    <maven.compiler.release>11</maven.compiler.release>
+    <maven.compiler.release>21</maven.compiler.release>
     <jakartaee.api.version>10.0.0</jakartaee.api.version>
     <surefire.version>3.5.2</surefire.version>
     <dependency.plugin.version>3.8.1</dependency.plugin.version>
