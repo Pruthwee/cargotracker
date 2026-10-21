@@ -274,6 +274,7 @@ public class SampleVoyages {
     for (Field field : SampleVoyages.class.getDeclaredFields()) {
       if (field.getType().equals(Voyage.class)) {
         try {
+          field.setAccessible(true);
           Voyage voyage = (Voyage) field.get(null);
           ALL.put(voyage.getVoyageNumber(), voyage);
         } catch (IllegalAccessException e) {
