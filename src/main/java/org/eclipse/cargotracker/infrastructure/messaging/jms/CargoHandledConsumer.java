@@ -1,47 +1,99 @@
 package org.eclipse.cargotracker.infrastructure.messaging.jms;
 
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import jakarta.ejb.ActivationConfigProperty;
-import jakarta.ejb.MessageDriven;
+import jakarta.ejb.Schedule;
+import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
-import jakarta.jms.JMSException;
-import jakarta.jms.Message;
-import jakarta.jms.MessageListener;
-import jakarta.jms.TextMessage;
 import org.eclipse.cargotracker.application.CargoInspectionService;
 import org.eclipse.cargotracker.domain.model.cargo.TrackingId;
+import software.amazon.awssdk.core.exception.SdkException;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
+import software.amazon.awssdk.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 
 /**
- * Consumes JMS messages and delegates notification of misdirected cargo to the tracking service.
+ * Consumes SQS messages and delegates notification of misdirected cargo to the tracking service.
  *
- * <p>This is a programmatic hook into the JMS infrastructure to make cargo inspection
- * message-driven.
+ * <p>Replaced JMS message-driven bean with a scheduled SQS poller, leveraging Amazon SQS as a
+ * fully managed message queue without requiring a traditional message broker.
  */
-@MessageDriven(
-    activationConfig = {
-      @ActivationConfigProperty(
-          propertyName = "destinationType",
-          propertyValue = "jakarta.jms.Queue"),
-      @ActivationConfigProperty(
-          propertyName = "destinationLookup",
-          propertyValue = "java:app/jms/CargoHandledQueue")
-    })
-public class CargoHandledConsumer implements MessageListener {
+@Stateless
+public class CargoHandledConsumer {
+
+  private static final int MAX_MESSAGES = 10;
+  private static final int WAIT_TIME_SECONDS = 20;
 
   @Inject private Logger logger;
 
   @Inject private CargoInspectionService cargoInspectionService;
 
-  @Override
-  public void onMessage(Message message) {
-    try {
-      TextMessage textMessage = (TextMessage) message;
-      String trackingIdString = textMessage.getText();
+  private SqsClient sqsClient;
+  private String queueUrl;
+  private final Object initLock = new Object();
 
-      cargoInspectionService.inspectCargo(new TrackingId(trackingIdString));
-    } catch (JMSException e) {
-      logger.log(Level.SEVERE, "Error procesing JMS message", e);
+  /** Lazily initializes the SQS client and queue URL from environment variables on first use. */
+  private void ensureInitialized() {
+    if (sqsClient != null) {
+      return;
+    }
+    synchronized (initLock) {
+      if (sqsClient != null) {
+        return;
+      }
+      queueUrl = System.getenv("SQS_CARGO_HANDLED_QUEUE_URL");
+      if (queueUrl == null || queueUrl.isEmpty()) {
+        logger.log(Level.WARNING, "SQS_CARGO_HANDLED_QUEUE_URL not set, SQS polling disabled");
+        return;
+      }
+      try {
+        sqsClient = SqsClient.builder().build();
+      } catch (SdkException e) {
+        logger.log(Level.WARNING, "Failed to create SQS client, SQS polling disabled", e);
+      }
+    }
+  }
+
+  /** Scheduled method that polls SQS for cargo handled messages. */
+  @Schedule(second = "*/30", minute = "*", hour = "*")
+  public void pollForMessages() {
+    ensureInitialized();
+    if (sqsClient == null || queueUrl == null) {
+      return;
+    }
+
+    try {
+      ReceiveMessageRequest receiveRequest =
+          ReceiveMessageRequest.builder()
+              .queueUrl(queueUrl)
+              .maxNumberOfMessages(MAX_MESSAGES)
+              .waitTimeSeconds(WAIT_TIME_SECONDS)
+              .messageAttributeNames("All")
+              .build();
+
+      List<Message> messages = sqsClient.receiveMessage(receiveRequest).messages();
+
+      for (Message message : messages) {
+        try {
+          String trackingIdString = message.body();
+          cargoInspectionService.inspectCargo(new TrackingId(trackingIdString));
+
+          // Delete message after successful processing
+          DeleteMessageRequest deleteRequest =
+              DeleteMessageRequest.builder()
+                  .queueUrl(queueUrl)
+                  .receiptHandle(message.receiptHandle())
+                  .build();
+          sqsClient.deleteMessage(deleteRequest);
+        } catch (Exception e) {
+          logger.log(Level.SEVERE, "Error processing SQS message", e);
+          // Message will become visible again after visibility timeout for retry
+        }
+      }
+    } catch (SdkException e) {
+      logger.log(Level.SEVERE, "Error receiving SQS messages", e);
     }
   }
 }

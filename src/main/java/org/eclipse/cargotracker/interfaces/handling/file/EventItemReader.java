@@ -1,11 +1,13 @@
 package org.eclipse.cargotracker.interfaces.handling.file;
 
-import java.io.File;
-import java.io.RandomAccessFile;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
-import java.util.Arrays;
+import java.util.List;
+import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jakarta.batch.api.chunk.AbstractItemReader;
@@ -24,71 +26,87 @@ import org.eclipse.cargotracker.interfaces.handling.HandlingEventRegistrationAtt
 @Named("EventItemReader")
 public class EventItemReader extends AbstractItemReader {
 
-  private static final String UPLOAD_DIRECTORY = "upload_directory";
-
   @Inject private Logger logger;
 
   @Inject private JobContext jobContext;
+  @Inject private EventFileS3Helper s3Helper;
+
   private EventFilesCheckpoint checkpoint;
-  private RandomAccessFile currentFile;
+  private Scanner currentFileScanner;
+  private String currentFileKey;
 
   @Override
   public void open(Serializable checkpoint) throws Exception {
-    File uploadDirectory = new File(jobContext.getProperties().getProperty(UPLOAD_DIRECTORY));
-
     if (checkpoint == null) {
       this.checkpoint = new EventFilesCheckpoint();
-      logger.log(Level.INFO, "Scanning upload directory: {0}", uploadDirectory);
+      logger.log(Level.INFO, "Scanning S3 upload prefix for event files");
 
-      if (!uploadDirectory.exists()) {
-        logger.log(Level.INFO, "Upload directory does not exist, creating it");
-        uploadDirectory.mkdirs();
-      } else {
-        this.checkpoint.setFiles(Arrays.asList(uploadDirectory.listFiles()));
-      }
+      List<String> files = s3Helper.listUploadFiles();
+      this.checkpoint.setFiles(files);
     } else {
       logger.log(Level.INFO, "Starting from previous checkpoint");
       this.checkpoint = (EventFilesCheckpoint) checkpoint;
     }
 
-    File file = this.checkpoint.currentFile();
+    String fileKey = this.checkpoint.currentFile();
 
-    if (file == null) {
+    if (fileKey == null) {
       logger.log(Level.INFO, "No files to process");
-      currentFile = null;
+      currentFileScanner = null;
     } else {
-      currentFile = new RandomAccessFile(file, "r");
-      logger.log(Level.INFO, "Processing file: {0}", file);
-      currentFile.seek(this.checkpoint.getFilePointer());
+      currentFileKey = fileKey;
+      logger.log(Level.INFO, "Processing file: {0}", fileKey);
+      String content = s3Helper.readObjectAsString(fileKey);
+      currentFileScanner = new Scanner(new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8.name());
+      // Skip to the checkpointed position
+      for (int i = 0; i < this.checkpoint.getFilePointer(); i++) {
+        if (!currentFileScanner.hasNextLine()) {
+          break;
+        }
+        currentFileScanner.nextLine();
+      }
     }
   }
 
   @Override
   public Object readItem() throws Exception {
-    if (currentFile != null) {
-      String line = currentFile.readLine();
+    if (currentFileScanner != null) {
+      String line = currentFileScanner.hasNextLine() ? currentFileScanner.nextLine() : null;
 
       if (line != null) {
-        this.checkpoint.setFilePointer(currentFile.getFilePointer());
+        this.checkpoint.setFilePointer(this.checkpoint.getFilePointer() + 1);
         return parseLine(line);
       } else {
         logger.log(
-            Level.INFO, "Finished processing file, deleting: {0}", this.checkpoint.currentFile());
-        currentFile.close();
-        this.checkpoint.currentFile().delete();
-        File nextFile = this.checkpoint.nextFile();
+            Level.INFO, "Finished processing file, archiving: {0}", currentFileKey);
+        currentFileScanner.close();
+        archiveFile(currentFileKey);
+        String nextFileKey = this.checkpoint.nextFile();
 
-        if (nextFile == null) {
+        if (nextFileKey == null) {
           logger.log(Level.INFO, "No more files to process");
           return null;
         } else {
-          currentFile = new RandomAccessFile(nextFile, "r");
-          logger.log(Level.INFO, "Processing file: {0}", nextFile);
+          currentFileKey = nextFileKey;
+          logger.log(Level.INFO, "Processing file: {0}", nextFileKey);
+          String content = s3Helper.readObjectAsString(nextFileKey);
+          currentFileScanner = new Scanner(new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8.name());
           return readItem();
         }
       }
     } else {
       return null;
+    }
+  }
+
+  /** Archives a processed file by copying its content to the archive prefix in S3. */
+  private void archiveFile(String fileKey) {
+    try {
+      String content = s3Helper.readObjectAsString(fileKey);
+      String fileName = fileKey.substring(fileKey.lastIndexOf('/') + 1);
+      s3Helper.writeArchiveFile(fileName, content);
+    } catch (IOException e) {
+      logger.log(Level.WARNING, "Failed to archive file: " + fileKey, e);
     }
   }
 

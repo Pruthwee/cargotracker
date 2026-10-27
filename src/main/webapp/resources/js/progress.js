@@ -15,8 +15,10 @@ $(function () {
   }
   resetToDefaults()
   topbar.show()
-  setTimeout(function () {
+  // Replaced callback-based setTimeout with async/await using a Promise wrapper
+  (async function () {
+    await new Promise(resolve => setTimeout(resolve, 1500))
     $('#container').fadeIn('slow')
     topbar.hide()
-  }, 1500)
+  })()
 })

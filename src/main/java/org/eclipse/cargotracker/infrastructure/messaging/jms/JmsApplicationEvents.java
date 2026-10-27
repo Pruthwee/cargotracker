@@ -12,6 +12,9 @@ import org.eclipse.cargotracker.application.ApplicationEvents;
 import org.eclipse.cargotracker.domain.model.cargo.Cargo;
 import org.eclipse.cargotracker.domain.model.handling.HandlingEvent;
 import org.eclipse.cargotracker.interfaces.handling.HandlingEventRegistrationAttempt;
+import software.amazon.awssdk.core.exception.SdkException;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 
 @ApplicationScoped
 public class JmsApplicationEvents implements ApplicationEvents, Serializable {
@@ -34,16 +37,59 @@ public class JmsApplicationEvents implements ApplicationEvents, Serializable {
 
   @Inject private Logger logger;
 
+  private SqsClient sqsClient;
+  private String cargoHandledQueueUrl;
+  private final Object initLock = new Object();
+
+  /** Lazily initializes the SQS client and queue URL from environment variables on first use. */
+  private void ensureSqsInitialized() {
+    if (sqsClient != null) {
+      return;
+    }
+    synchronized (initLock) {
+      if (sqsClient != null) {
+        return;
+      }
+      cargoHandledQueueUrl = System.getenv("SQS_CARGO_HANDLED_QUEUE_URL");
+      if (cargoHandledQueueUrl == null || cargoHandledQueueUrl.isEmpty()) {
+        logger.log(Level.WARNING, "SQS_CARGO_HANDLED_QUEUE_URL not set, SQS messaging disabled");
+        return;
+      }
+      try {
+        sqsClient = SqsClient.builder().build();
+      } catch (SdkException e) {
+        logger.log(Level.WARNING, "Failed to create SQS client, SQS messaging disabled", e);
+      }
+    }
+  }
+
   @Override
   public void cargoWasHandled(HandlingEvent event) {
     Cargo cargo = event.getCargo();
     logger.log(Level.INFO, "Cargo was handled {0}", cargo);
-    jmsContext
-        .createProducer()
-        .setPriority(LOW_PRIORITY)
-        .setDisableMessageID(true)
-        .setDisableMessageTimestamp(true)
-        .send(cargoHandledQueue, cargo.getTrackingId().getIdString());
+
+    ensureSqsInitialized();
+    if (sqsClient != null && cargoHandledQueueUrl != null) {
+      try {
+        SendMessageRequest request =
+            SendMessageRequest.builder()
+                .queueUrl(cargoHandledQueueUrl)
+                .messageBody(cargo.getTrackingId().getIdString())
+                .build();
+        sqsClient.sendMessage(request);
+      } catch (SdkException e) {
+        logger.log(Level.SEVERE, "Failed to send SQS message for cargo handled", e);
+      }
+    } else {
+      // Fallback to JMS if SQS is not configured
+      logger.log(Level.WARNING, "SQS not configured, falling back to JMS for cargo handled event");
+      jmsContext
+          .createProducer()
+          .setPriority(LOW_PRIORITY)
+          .setDisableMessageID(true)
+          .setDisableMessageTimestamp(true)
+          .send(cargoHandledQueue, cargo.getTrackingId().getIdString());
+    }
   }
 
   @Override

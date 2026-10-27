@@ -76,12 +76,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @ExtendWith(ArquillianExtension.class)
 @TestMethodOrder(OrderAnnotation.class)
 public class BookingServiceTest {
-  private static TrackingId trackingId;
-  private static List<Itinerary> candidates;
-  private static LocalDate deadline;
-  private static Itinerary assigned;
-
   @Inject private BookingService bookingService;
+  @Inject private TestStateHolder testState;
   @PersistenceContext private EntityManager entityManager;
 
   @Deployment
@@ -90,8 +86,8 @@ public class BookingServiceTest {
     String launch = System.getProperty("arquillian.launch", "payara");
     String webXml = launch.equals("openliberty") ? "test-liberty-web.xml" : "test-web.xml";
     String[] dependencies = launch.equals("openliberty") ?
-               new String[] { "org.apache.commons:commons-lang3" } :
-               new String[] { "org.apache.commons:commons-lang3", "com.h2database:h2"};
+               new String[] { "org.apache.commons:commons-lang3", "io.lettuce:lettuce-core:6.9.0.RELEASE" } :
+               new String[] { "org.apache.commons:commons-lang3", "com.h2database:h2", "io.lettuce:lettuce-core:6.9.0.RELEASE"};
     
     return ShrinkWrap.create(WebArchive.class, "cargo-tracker-test.war")
         // Application layer component directly under test.
@@ -151,6 +147,8 @@ public class BookingServiceTest {
         .addClass(BookingServiceTestDataGenerator.class)
         .addClass(SampleLocations.class)
         .addClass(SampleVoyages.class)
+        // Test state holder (Redis-backed, replaces static mutable variables)
+        .addClass(TestStateHolder.class)
         // Persistence unit descriptor
         .addAsResource("test-persistence.xml", "META-INF/persistence.xml")
         // Web application descriptor
@@ -172,9 +170,11 @@ public class BookingServiceTest {
     UnLocode fromUnlocode = new UnLocode("USCHI");
     UnLocode toUnlocode = new UnLocode("SESTO");
 
-    deadline = LocalDate.now().plusMonths(6);
+    LocalDate deadline = LocalDate.now().plusMonths(6);
+    testState.setDeadline(deadline);
 
-    trackingId = bookingService.bookNewCargo(fromUnlocode, toUnlocode, deadline);
+    TrackingId trackingId = bookingService.bookNewCargo(fromUnlocode, toUnlocode, deadline);
+    testState.setTrackingId(trackingId);
 
     Cargo cargo =
         entityManager
@@ -199,7 +199,9 @@ public class BookingServiceTest {
   @Test
   @Order(2)
   public void testRouteCandidates() {
-    candidates = bookingService.requestPossibleRoutesForCargo(trackingId);
+    TrackingId trackingId = testState.getTrackingId();
+    List<Itinerary> candidates = bookingService.requestPossibleRoutesForCargo(trackingId);
+    testState.setCandidates(candidates);
 
     assertFalse(candidates.isEmpty());
   }
@@ -207,7 +209,10 @@ public class BookingServiceTest {
   @Test
   @Order(3)
   public void testAssignRoute() {
-    assigned = candidates.get(new Random().nextInt(candidates.size()));
+    TrackingId trackingId = testState.getTrackingId();
+    List<Itinerary> candidates = testState.getCandidates();
+    Itinerary assigned = candidates.get(new Random().nextInt(candidates.size()));
+    testState.setAssigned(assigned);
 
     bookingService.assignCargoToRoute(assigned, trackingId);
 
@@ -222,7 +227,7 @@ public class BookingServiceTest {
     assertEquals(Location.UNKNOWN, cargo.getDelivery().getLastKnownLocation());
     assertEquals(Voyage.NONE, cargo.getDelivery().getCurrentVoyage());
     assertFalse(cargo.getDelivery().isMisdirected());
-    assertTrue(cargo.getDelivery().getEstimatedTimeOfArrival().isBefore(deadline.atStartOfDay()));
+    assertTrue(cargo.getDelivery().getEstimatedTimeOfArrival().isBefore(testState.getDeadline().atStartOfDay()));
     assertEquals(
         HandlingEvent.Type.RECEIVE, cargo.getDelivery().getNextExpectedActivity().getType());
     assertEquals(
@@ -235,6 +240,10 @@ public class BookingServiceTest {
   @Test
   @Order(4)
   public void testChangeDestination() {
+    TrackingId trackingId = testState.getTrackingId();
+    Itinerary assigned = testState.getAssigned();
+    LocalDate deadline = testState.getDeadline();
+
     bookingService.changeDestination(trackingId, new UnLocode("FIHEL"));
 
     Cargo cargo =
@@ -260,6 +269,10 @@ public class BookingServiceTest {
   @Test
   @Order(5)
   public void testChangeDeadline() {
+    TrackingId trackingId = testState.getTrackingId();
+    Itinerary assigned = testState.getAssigned();
+    LocalDate deadline = testState.getDeadline();
+
     LocalDate newDeadline = deadline.plusMonths(1);
     bookingService.changeDeadline(trackingId, newDeadline);
 

@@ -52,6 +52,14 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
+      <!-- AWS SDK for Java v2 BOM, pinned to latest stable (2.57.4 from maven-metadata.xml) -->
+      <dependency>
+        <groupId>software.amazon.awssdk</groupId>
+        <artifactId>bom</artifactId>
+        <version>2.57.4</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
   <dependencies>
@@ -65,6 +73,27 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
+    </dependency>
+    <!-- AWS SDK for Java v2 - S3 client (serves cr-java-0061/0062/0063/0064) -->
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>s3</artifactId>
+    </dependency>
+    <!-- AWS SDK for Java v2 - SQS client (serves cr-java-0103) -->
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>sqs</artifactId>
+    </dependency>
+    <!-- AWS SDK for Java v2 - SDK core (for SdkException, serves cr-java-0061/0062/0063/0064/0103) -->
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>sdk-core</artifactId>
+    </dependency>
+    <!-- Lettuce Redis client (serves cr-java-0066/0067) -->
+    <dependency>
+      <groupId>io.lettuce</groupId>
+      <artifactId>lettuce-core</artifactId>
+      <version>6.9.0.RELEASE</version>
     </dependency>
     <dependency>
       <groupId>org.primefaces</groupId>
@@ -124,6 +153,14 @@
   <build>
     <finalName>cargo-tracker</finalName>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.16.0</version>
+        <configuration>
+          <release>11</release>
+        </configuration>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>

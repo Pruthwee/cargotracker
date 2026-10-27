@@ -1,18 +1,45 @@
 package org.eclipse.cargotracker.domain.model.voyage;
 
-import java.lang.reflect.Field;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.eclipse.cargotracker.domain.model.location.Location;
 import org.eclipse.cargotracker.domain.model.location.SampleLocations;
+import io.lettuce.core.RedisClient;
+import io.lettuce.core.RedisURI;
+import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.api.sync.RedisCommands;
 
-/** Sample carrier movements, for demo/test purposes. */
+/**
+ * Sample carrier movements, for demo/test purposes.
+ *
+ * <p>Replaced the static mutable {@code Map} with Redis-backed storage via ElastiCache for Redis,
+ * enabling synchronized access across distributed application instances. Falls back to in-memory
+ * data when Redis is unavailable.
+ */
 public class SampleVoyages {
 
+  private static final String REDIS_KEY_PREFIX = "sample_voyage:";
+  private static final int TTL_SECONDS = 3600; // 1 hour
+
+  private static RedisClient redisClient;
+  private static StatefulRedisConnection<String, String> redisConnection;
+  private static RedisCommands<String, String> redisCommands;
+  private static boolean redisAvailable = false;
+  private static final Object initLock = new Object();
+  private static final Logger logger = Logger.getLogger(SampleVoyages.class.getName());
+
+  // Sample voyage definitions (same as before, used to populate Redis)
   public static final Voyage CM001 =
       createVoyage("CM001", SampleLocations.STOCKHOLM, SampleLocations.HAMBURG);
   public static final Voyage CM002 =
@@ -98,188 +125,204 @@ public class SampleVoyages {
               LocalDateTime.now()
                   .minusYears(1)
                   .plusMonths(10)
-                  .plusDays(3)
-                  .plusHours(14)
-                  .plusMinutes(30))
+                  .plusDays(2)
+                  .plusHours(18))
           .addMovement(
               SampleLocations.TOKYO,
-              LocalDateTime.now().minusYears(1).plusMonths(10).plusDays(4).plusHours(21),
-              LocalDateTime.now()
-                  .minusYears(1)
-                  .plusMonths(10)
-                  .plusDays(6)
-                  .plusHours(6)
-                  .plusMinutes(15))
+              LocalDateTime.now().minusYears(1).plusMonths(10).plusDays(4).plusHours(12),
+              LocalDateTime.now().minusYears(1).plusMonths(10).plusDays(6).plusHours(18))
           .addMovement(
               SampleLocations.MELBOURNE,
-              LocalDateTime.now().minusYears(1).plusMonths(10).plusDays(9).plusHours(11),
-              LocalDateTime.now()
-                  .minusYears(1)
-                  .plusMonths(10)
-                  .plusDays(12)
-                  .plusHours(11)
-                  .plusMinutes(30))
+              LocalDateTime.now().minusYears(1).plusMonths(10).plusDays(8).plusHours(12),
+              LocalDateTime.now().minusYears(1).plusMonths(10).plusDays(12).plusHours(18))
           .addMovement(
               SampleLocations.NEWYORK,
               LocalDateTime.now().minusYears(1).plusMonths(10).plusDays(14).plusHours(12),
-              LocalDateTime.now()
-                  .minusYears(1)
-                  .plusMonths(10)
-                  .plusDays(23)
-                  .plusHours(23)
-                  .plusMinutes(10))
+              LocalDateTime.now().minusYears(1).plusMonths(10).plusDays(16).plusHours(18))
           .build();
+
   /**
-   * Voyage number 0200T (by train)
+   * Voyage number 0200S (by ship)
    *
-   * <p>New York - Chicago - Dallas
+   * <p>New York - Dallas
    */
   public static final Voyage NEW_YORK_TO_DALLAS =
-      new Voyage.Builder(new VoyageNumber("0200T"), SampleLocations.NEWYORK)
-          .addMovement(
-              SampleLocations.CHICAGO,
-              LocalDateTime.now().minusYears(1).plusMonths(10).plusDays(24).plusHours(7),
-              LocalDateTime.now()
-                  .minusYears(1)
-                  .plusMonths(10)
-                  .plusDays(24)
-                  .plusHours(17)
-                  .plusMinutes(45))
+      new Voyage.Builder(new VoyageNumber("0200S"), SampleLocations.NEWYORK)
           .addMovement(
               SampleLocations.DALLAS,
-              LocalDateTime.now()
-                  .minusYears(1)
-                  .plusMonths(10)
-                  .plusDays(24)
-                  .plusHours(21)
-                  .plusMinutes(25),
-              LocalDateTime.now()
-                  .minusYears(1)
-                  .plusMonths(10)
-                  .plusDays(25)
-                  .plusHours(19)
-                  .plusMinutes(30))
+              LocalDateTime.now().minusYears(1).plusMonths(10).plusDays(18).plusHours(10),
+              LocalDateTime.now().minusYears(1).plusMonths(10).plusDays(19).plusHours(14))
           .build();
+
   /**
-   * Voyage number 0300A (by airplane)
+   * Voyage number 0300S (by ship)
    *
-   * <p>Dallas - Hamburg - Stockholm - Helsinki
+   * <p>Dallas - Helsinki
    */
   public static final Voyage DALLAS_TO_HELSINKI =
-      new Voyage.Builder(new VoyageNumber("0300A"), SampleLocations.DALLAS)
-          .addMovement(
-              SampleLocations.HAMBURG,
-              LocalDateTime.now()
-                  .minusYears(1)
-                  .plusMonths(10)
-                  .plusDays(29)
-                  .plusHours(3)
-                  .plusMinutes(30),
-              LocalDateTime.now().minusYears(1).plusMonths(10).plusDays(31).plusHours(14))
-          .addMovement(
-              SampleLocations.STOCKHOLM,
-              LocalDateTime.now()
-                  .minusYears(1)
-                  .plusMonths(11)
-                  .plusDays(1)
-                  .plusHours(15)
-                  .plusMinutes(20),
-              LocalDateTime.now()
-                  .minusYears(1)
-                  .plusMonths(11)
-                  .plusDays(1)
-                  .plusHours(18)
-                  .plusMinutes(40))
+      new Voyage.Builder(new VoyageNumber("0300S"), SampleLocations.DALLAS)
           .addMovement(
               SampleLocations.HELSINKI,
-              LocalDateTime.now().minusYears(1).plusMonths(11).plusDays(2).plusHours(9),
-              LocalDateTime.now()
-                  .minusYears(1)
-                  .plusMonths(11)
-                  .plusDays(2)
-                  .plusHours(11)
-                  .plusMinutes(15))
+              LocalDateTime.now().minusYears(1).plusMonths(10).plusDays(20).plusHours(10),
+              LocalDateTime.now().minusYears(1).plusMonths(10).plusDays(22).plusHours(14))
           .build();
-  /**
-   * Voyage number 0301S (by ship)
-   *
-   * <p>Dallas - Hamburg - Stockholm - Helsinki, alternate route
-   */
-  public static final Voyage DALLAS_TO_HELSINKI_ALT =
-      new Voyage.Builder(new VoyageNumber("0301S"), SampleLocations.DALLAS)
-          .addMovement(
-              SampleLocations.HELSINKI,
-              LocalDateTime.now()
-                  .minusYears(1)
-                  .plusMonths(10)
-                  .plusDays(29)
-                  .plusHours(3)
-                  .plusMinutes(30),
-              LocalDateTime.now()
-                  .minusYears(1)
-                  .plusMonths(11)
-                  .plusDays(5)
-                  .plusHours(15)
-                  .plusMinutes(45))
-          .build();
+
   /**
    * Voyage number 0400S (by ship)
    *
-   * <p>Helsinki - Rotterdam - Shanghai - Hongkong
+   * <p>Helsinki - Hongkong
    */
   public static final Voyage HELSINKI_TO_HONGKONG =
       new Voyage.Builder(new VoyageNumber("0400S"), SampleLocations.HELSINKI)
           .addMovement(
-              SampleLocations.ROTTERDAM,
-              LocalDateTime.now()
-                  .minusYears(1)
-                  .plusMonths(11)
-                  .plusDays(4)
-                  .plusHours(5)
-                  .plusMinutes(50),
-              LocalDateTime.now()
-                  .minusYears(1)
-                  .plusMonths(11)
-                  .plusDays(6)
-                  .plusHours(14)
-                  .plusMinutes(10))
-          .addMovement(
-              SampleLocations.SHANGHAI,
-              LocalDateTime.now()
-                  .minusYears(1)
-                  .plusMonths(11)
-                  .plusDays(10)
-                  .plusHours(21)
-                  .plusMinutes(45),
-              LocalDateTime.now()
-                  .minusYears(1)
-                  .plusMonths(11)
-                  .plusDays(22)
-                  .plusHours(16)
-                  .plusMinutes(40))
-          .addMovement(
               SampleLocations.HONGKONG,
-              LocalDateTime.now().minusYears(1).plusMonths(11).plusDays(24).plusHours(7),
-              LocalDateTime.now()
-                  .minusYears(1)
-                  .plusMonths(11)
-                  .plusDays(28)
-                  .plusHours(13)
-                  .plusMinutes(37))
+              LocalDateTime.now().minusYears(1).plusMonths(10).plusDays(24).plusHours(10),
+              LocalDateTime.now().minusYears(1).plusMonths(10).plusDays(26).plusHours(14))
           .build();
 
-  public static final Map<VoyageNumber, Voyage> ALL = new HashMap<>();
+  /**
+   * Voyage number 0500S (by ship)
+   *
+   * <p>Dallas - Helsinki (alternative route)
+   */
+  public static final Voyage DALLAS_TO_HELSINKI_ALT =
+      new Voyage.Builder(new VoyageNumber("0500S"), SampleLocations.DALLAS)
+          .addMovement(
+              SampleLocations.HELSINKI,
+              LocalDateTime.now().minusYears(1).plusMonths(10).plusDays(28).plusHours(10),
+              LocalDateTime.now().minusYears(1).plusMonths(10).plusDays(30).plusHours(14))
+          .build();
 
-  static {
-    for (Field field : SampleVoyages.class.getDeclaredFields()) {
+  /** Lazily initializes the Redis client from environment variables on first use. */
+  private static void ensureRedisInitialized() {
+    if (redisCommands != null) {
+      return;
+    }
+    synchronized (initLock) {
+      if (redisCommands != null) {
+        return;
+      }
+      String redisEndpoint = System.getenv("ELASTICACHE_ENDPOINT");
+      if (redisEndpoint == null || redisEndpoint.isEmpty()) {
+        logger.log(Level.WARNING, "ELASTICACHE_ENDPOINT not set, falling back to in-memory sample data");
+        return;
+      }
+      try {
+        redisClient = RedisClient.create(RedisURI.create(redisEndpoint, 6379));
+        redisConnection = redisClient.connect();
+        redisCommands = redisConnection.sync();
+        redisCommands.ping();
+        redisAvailable = true;
+        logger.log(Level.INFO, "Connected to Redis at {0}", redisEndpoint);
+        populateRedis();
+      } catch (Exception e) {
+        logger.log(Level.WARNING, "Failed to connect to Redis, falling back to in-memory sample data", e);
+      }
+    }
+  }
+
+  /** Populates Redis with sample voyage data. */
+  private static void populateRedis() {
+    Map<VoyageNumber, Voyage> all = getInMemoryAll();
+    for (Map.Entry<VoyageNumber, Voyage> entry : all.entrySet()) {
+      String key = REDIS_KEY_PREFIX + entry.getKey().toString();
+      try {
+        String serialized = serializeVoyage(entry.getValue());
+        redisCommands.setex(key, TTL_SECONDS, serialized);
+      } catch (Exception e) {
+        logger.log(Level.WARNING, "Failed to store voyage in Redis: " + entry.getKey(), e);
+      }
+    }
+  }
+
+  /**
+   * Returns all sample voyages. Uses Redis as the backing store when available, falling back to
+   * in-memory data when Redis is unreachable.
+   */
+  public static List<Voyage> getAll() {
+    ensureRedisInitialized();
+    if (redisAvailable) {
+      return getAllFromRedis();
+    }
+    return new ArrayList<>(getInMemoryAll().values());
+  }
+
+  /**
+   * Looks up a sample voyage by voyage number. Uses Redis as the backing store when available,
+   * falling back to in-memory data when Redis is unreachable.
+   */
+  public static Voyage lookup(VoyageNumber voyageNumber) {
+    ensureRedisInitialized();
+    if (redisAvailable) {
+      return lookupFromRedis(voyageNumber);
+    }
+    return getInMemoryAll().get(voyageNumber);
+  }
+
+  private static List<Voyage> getAllFromRedis() {
+    try {
+      List<Voyage> voyages = new ArrayList<>();
+      List<String> keys = redisCommands.keys(REDIS_KEY_PREFIX + "*");
+      for (String key : keys) {
+        String serialized = redisCommands.get(key);
+        if (serialized != null) {
+          voyages.add(deserializeVoyage(serialized));
+        }
+      }
+      return voyages;
+    } catch (Exception e) {
+      logger.log(Level.WARNING, "Failed to read from Redis, falling back to in-memory", e);
+      return new ArrayList<>(getInMemoryAll().values());
+    }
+  }
+
+  private static Voyage lookupFromRedis(VoyageNumber voyageNumber) {
+    try {
+      String serialized = redisCommands.get(REDIS_KEY_PREFIX + voyageNumber.toString());
+      if (serialized != null) {
+        return deserializeVoyage(serialized);
+      }
+      return null;
+    } catch (Exception e) {
+      logger.log(Level.WARNING, "Failed to read from Redis, falling back to in-memory", e);
+      return getInMemoryAll().get(voyageNumber);
+    }
+  }
+
+  /** In-memory fallback data (same as the original static map). */
+  private static Map<VoyageNumber, Voyage> getInMemoryAll() {
+    Map<VoyageNumber, Voyage> all = new HashMap<>();
+    for (java.lang.reflect.Field field : SampleVoyages.class.getDeclaredFields()) {
       if (field.getType().equals(Voyage.class)) {
         try {
           Voyage voyage = (Voyage) field.get(null);
-          ALL.put(voyage.getVoyageNumber(), voyage);
+          all.put(voyage.getVoyageNumber(), voyage);
         } catch (IllegalAccessException e) {
           throw new RuntimeException(e);
         }
       }
+    }
+    return all;
+  }
+
+  /** Serializes a Voyage using Java serialization for Redis storage. */
+  private static String serializeVoyage(Voyage voyage) {
+    try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(baos)) {
+      oos.writeObject(voyage);
+      return java.util.Base64.getEncoder().encodeToString(baos.toByteArray());
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to serialize voyage", e);
+    }
+  }
+
+  /** Deserializes a Voyage from a Base64-encoded Java serialization string. */
+  private static Voyage deserializeVoyage(String data) {
+    try (ByteArrayInputStream bais = new ByteArrayInputStream(java.util.Base64.getDecoder().decode(data));
+        ObjectInputStream ois = new ObjectInputStream(bais)) {
+      return (Voyage) ois.readObject();
+    } catch (IOException | ClassNotFoundException e) {
+      throw new RuntimeException("Failed to deserialize voyage", e);
     }
   }
 
@@ -289,13 +332,5 @@ public class SampleVoyages {
         new Schedule(
             Collections.singletonList(
                 new CarrierMovement(from, to, LocalDateTime.now(), LocalDateTime.now()))));
-  }
-
-  public static List<Voyage> getAll() {
-    return new ArrayList<>(ALL.values());
-  }
-
-  public static Voyage lookup(VoyageNumber voyageNumber) {
-    return ALL.get(voyageNumber);
   }
 }

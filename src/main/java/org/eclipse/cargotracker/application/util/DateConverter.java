@@ -11,10 +11,10 @@ public class DateConverter {
   public static final String DATE_TIME_FORMAT = "M/d/yyyy h:m a";
 
   private static final DateTimeFormatter DATE_FORMATTER =
-      DateTimeFormatter.ofPattern(DATE_FORMAT).withZone(ZoneId.systemDefault());
+      DateTimeFormatter.ofPattern(DATE_FORMAT).withZone(ZoneId.of("UTC"));
 
   private static final DateTimeFormatter DATE_TIME_FORMATTER =
-      DateTimeFormatter.ofPattern(DATE_TIME_FORMAT).withZone(ZoneId.systemDefault());
+      DateTimeFormatter.ofPattern(DATE_TIME_FORMAT).withZone(ZoneId.of("UTC"));
 
   private DateConverter() {}
 
