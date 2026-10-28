@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.time.LocalDate;
+import org.junit.jupiter.api.Test;
 import java.util.List;
 import org.eclipse.cargotracker.domain.model.cargo.Cargo;
 import org.eclipse.cargotracker.domain.model.cargo.Itinerary;
@@ -40,6 +41,7 @@ public class ExternalRoutingServiceTest {
   //        externalRoutingService.setGraphTraversalService(graphTraversalService);
   //    }
   // TODO [TDD] this test belongs in com.pathfinder
+  @Test
   public void testCalculatePossibleRoutes() {
     TrackingId trackingId = new TrackingId("ABC");
     RouteSpecification routeSpecification =

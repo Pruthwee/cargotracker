@@ -3,10 +3,8 @@ package org.eclipse.cargotracker.interfaces.tracking.web;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import jakarta.faces.view.ViewScoped;
 import jakarta.inject.Inject;
@@ -60,12 +58,7 @@ public class Track implements Serializable {
   }
 
   public String getCargoAsJson() {
-    try {
-      return URLEncoder.encode(JsonbBuilder.create().toJson(cargo), UTF_8.name());
-    } catch (UnsupportedEncodingException ex) {
-      logger.log(Level.WARNING, "URL encoding error.", ex);
-      return ""; // Should never happen.
-    }
+    return URLEncoder.encode(JsonbBuilder.create().toJson(cargo), UTF_8);
   }
 
   public void onTrackById() {

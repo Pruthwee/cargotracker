@@ -7,6 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import org.junit.jupiter.api.Test;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -83,6 +85,7 @@ public class CargoLifecycleScenarioTest {
    */
   RoutingService routingService;
 
+  @Test
   public void testCargoFromHongkongToStockholm() throws Exception {
     /*
      * Test setup: A cargo should be shipped from Hongkong to
