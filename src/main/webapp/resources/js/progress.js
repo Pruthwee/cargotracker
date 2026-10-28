@@ -1,4 +1,4 @@
-$(function () {
+$(async function () {
   function resetToDefaults() {
     topbar.config({
       autoRun: true,
@@ -15,8 +15,9 @@ $(function () {
   }
   resetToDefaults()
   topbar.show()
-  setTimeout(function () {
-    $('#container').fadeIn('slow')
-    topbar.hide()
-  }, 1500)
+  await new Promise(function (resolve) {
+    setTimeout(resolve, 1500)
+  })
+  $('#container').fadeIn('slow')
+  topbar.hide()
 })

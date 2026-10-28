@@ -28,6 +28,7 @@
     <surefire.version>3.5.2</surefire.version>
     <dependency.plugin.version>3.8.1</dependency.plugin.version>
     <cargo.plugin.version>1.10.18</cargo.plugin.version>
+    <awssdk.version>2.57.5</awssdk.version>
     <h2.version>2.3.232</h2.version>
     <payara.version>6.2025.3</payara.version>
     <payara.arquillian.adapter.version>3.1</payara.arquillian.adapter.version>
@@ -35,6 +36,13 @@
   </properties>
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <groupId>software.amazon.awssdk</groupId>
+        <artifactId>bom</artifactId>
+        <version>${awssdk.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
       <!-- Arquillian Bill Of Management used to reduce collision between testing
       dependencies. Using a dependency manager we don't need to specify the version of
       each Arquillian dependency. -->
@@ -71,6 +79,15 @@
       <artifactId>primefaces</artifactId>
       <version>14.0.5</version>
       <classifier>jakarta</classifier>
+    </dependency>
+    <!-- AWS SDK for Java v2: S3 replaces the local file system, SQS replaces the JMS queue -->
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>s3</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>sqs</artifactId>
     </dependency>
     <!-- We need a Jersey specific dependency for property name constants -->
     <dependency>

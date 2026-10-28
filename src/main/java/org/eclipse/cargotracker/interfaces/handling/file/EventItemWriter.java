@@ -1,10 +1,5 @@
 package org.eclipse.cargotracker.interfaces.handling.file;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.PrintWriter;
-import java.io.Serializable;
 import java.util.List;
 import jakarta.batch.api.chunk.AbstractItemWriter;
 import jakarta.batch.runtime.context.JobContext;
@@ -24,50 +19,46 @@ public class EventItemWriter extends AbstractItemWriter {
 
   @Inject private JobContext jobContext;
   @Inject private ApplicationEvents applicationEvents;
-
-  @Override
-  public void open(Serializable checkpoint) throws Exception {
-    File archiveDirectory = new File(jobContext.getProperties().getProperty(ARCHIVE_DIRECTORY));
-
-    if (!archiveDirectory.exists()) {
-      archiveDirectory.mkdirs();
-    }
-  }
+  @Inject private S3Storage storage;
 
   @Override
   @Transactional
   public void writeItems(List<Object> items) throws Exception {
-    try (PrintWriter archive =
-        new PrintWriter(
-            new BufferedWriter(
-                new FileWriter(
-                    jobContext.getProperties().getProperty(ARCHIVE_DIRECTORY)
-                        + "/archive_"
-                        + jobContext.getJobName()
-                        + "_"
-                        + jobContext.getInstanceId()
-                        + ".csv",
-                    true)))) {
+    String archiveKey =
+        S3Storage.toPrefix(jobContext.getProperties().getProperty(ARCHIVE_DIRECTORY))
+            + "archive_"
+            + jobContext.getJobName()
+            + "_"
+            + jobContext.getInstanceId()
+            + ".csv";
+    StringBuilder archive = new StringBuilder();
 
+    try {
       items
           .stream()
           .map(item -> (HandlingEventRegistrationAttempt) item)
           .forEach(
               attempt -> {
                 applicationEvents.receivedHandlingEventRegistrationAttempt(attempt);
-                archive.println(
-                    DateConverter.toString(attempt.getRegistrationTime())
-                        + ","
-                        + DateConverter.toString(attempt.getCompletionTime())
-                        + ","
-                        + attempt.getTrackingId()
-                        + ","
-                        + attempt.getVoyageNumber()
-                        + ","
-                        + attempt.getUnLocode()
-                        + ","
-                        + attempt.getType());
+                archive
+                    .append(
+                        DateConverter.toString(attempt.getRegistrationTime())
+                            + ","
+                            + DateConverter.toString(attempt.getCompletionTime())
+                            + ","
+                            + attempt.getTrackingId()
+                            + ","
+                            + attempt.getVoyageNumber()
+                            + ","
+                            + attempt.getUnLocode()
+                            + ","
+                            + attempt.getType())
+                    .append(System.lineSeparator());
               });
+    } finally {
+      if (archive.length() > 0) {
+        storage.append(archiveKey, archive.toString());
+      }
     }
   }
 }

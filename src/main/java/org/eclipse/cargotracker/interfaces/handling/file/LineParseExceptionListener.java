@@ -1,9 +1,5 @@
 package org.eclipse.cargotracker.interfaces.handling.file;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.PrintWriter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jakarta.batch.api.chunk.listener.SkipReadListener;
@@ -22,31 +18,22 @@ public class LineParseExceptionListener implements SkipReadListener {
 
   @Inject private JobContext jobContext;
 
+  @Inject private S3Storage storage;
+
   @Override
   public void onSkipReadItem(Exception e) throws Exception {
-    File failedDirectory = new File(jobContext.getProperties().getProperty(FAILED_DIRECTORY));
-
-    if (!failedDirectory.exists()) {
-      failedDirectory.mkdirs();
-    }
+    String failedKey =
+        S3Storage.toPrefix(jobContext.getProperties().getProperty(FAILED_DIRECTORY))
+            + "failed_"
+            + jobContext.getJobName()
+            + "_"
+            + jobContext.getInstanceId()
+            + ".csv";
 
     EventLineParseException parseException = (EventLineParseException) e;
 
     logger.log(Level.WARNING, "Problem parsing event file line", parseException);
 
-    try (PrintWriter failed =
-        new PrintWriter(
-            new BufferedWriter(
-                new FileWriter(
-                    new File(
-                        failedDirectory,
-                        "failed_"
-                            + jobContext.getJobName()
-                            + "_"
-                            + jobContext.getInstanceId()
-                            + ".csv"),
-                    true)))) {
-      failed.println(parseException.getLine());
-    }
+    storage.append(failedKey, parseException.getLine() + System.lineSeparator());
   }
 }

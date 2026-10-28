@@ -1,11 +1,11 @@
 package org.eclipse.cargotracker.interfaces.handling.file;
 
-import java.io.File;
-import java.io.RandomAccessFile;
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
-import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jakarta.batch.api.chunk.AbstractItemReader;
@@ -29,60 +29,57 @@ public class EventItemReader extends AbstractItemReader {
   @Inject private Logger logger;
 
   @Inject private JobContext jobContext;
+  @Inject private S3Storage storage;
   private EventFilesCheckpoint checkpoint;
-  private RandomAccessFile currentFile;
+  private InputStream currentFile;
+  private long currentPosition;
 
   @Override
   public void open(Serializable checkpoint) throws Exception {
-    File uploadDirectory = new File(jobContext.getProperties().getProperty(UPLOAD_DIRECTORY));
+    String uploadPrefix =
+        S3Storage.toPrefix(jobContext.getProperties().getProperty(UPLOAD_DIRECTORY));
 
     if (checkpoint == null) {
       this.checkpoint = new EventFilesCheckpoint();
-      logger.log(Level.INFO, "Scanning upload directory: {0}", uploadDirectory);
-
-      if (!uploadDirectory.exists()) {
-        logger.log(Level.INFO, "Upload directory does not exist, creating it");
-        uploadDirectory.mkdirs();
-      } else {
-        this.checkpoint.setFiles(Arrays.asList(uploadDirectory.listFiles()));
-      }
+      logger.log(Level.INFO, "Scanning upload location: {0}", uploadPrefix);
+      this.checkpoint.setFiles(storage.list(uploadPrefix));
     } else {
       logger.log(Level.INFO, "Starting from previous checkpoint");
       this.checkpoint = (EventFilesCheckpoint) checkpoint;
     }
 
-    File file = this.checkpoint.currentFile();
+    String file = this.checkpoint.currentFile();
 
     if (file == null) {
       logger.log(Level.INFO, "No files to process");
       currentFile = null;
     } else {
-      currentFile = new RandomAccessFile(file, "r");
+      openFile(file, this.checkpoint.getFilePointer());
       logger.log(Level.INFO, "Processing file: {0}", file);
-      currentFile.seek(this.checkpoint.getFilePointer());
     }
   }
 
   @Override
   public Object readItem() throws Exception {
     if (currentFile != null) {
-      String line = currentFile.readLine();
+      String line = readLine();
 
       if (line != null) {
-        this.checkpoint.setFilePointer(currentFile.getFilePointer());
+        this.checkpoint.setFilePointer(currentPosition);
         return parseLine(line);
       } else {
         logger.log(
             Level.INFO, "Finished processing file, deleting: {0}", this.checkpoint.currentFile());
         currentFile.close();
-        this.checkpoint.currentFile().delete();
-        File nextFile = this.checkpoint.nextFile();
+        storage.delete(this.checkpoint.currentFile());
+        String nextFile = this.checkpoint.nextFile();
 
         if (nextFile == null) {
           logger.log(Level.INFO, "No more files to process");
+          currentFile = null;
           return null;
         } else {
-          currentFile = new RandomAccessFile(nextFile, "r");
+          openFile(nextFile, 0);
           logger.log(Level.INFO, "Processing file: {0}", nextFile);
           return readItem();
         }
@@ -90,6 +87,56 @@ public class EventItemReader extends AbstractItemReader {
     } else {
       return null;
     }
+  }
+
+  @Override
+  public void close() throws Exception {
+    if (currentFile != null) {
+      currentFile.close();
+    }
+  }
+
+  private void openFile(String key, long offset) throws IOException {
+    currentFile = new BufferedInputStream(storage.open(key, offset));
+    currentPosition = offset;
+  }
+
+  /** Reads a line of bytes as characters and keeps the position, like RandomAccessFile did. */
+  private String readLine() throws IOException {
+    StringBuilder input = new StringBuilder();
+    int c = -1;
+    boolean eol = false;
+
+    while (!eol) {
+      switch (c = currentFile.read()) {
+        case -1:
+        case '\n':
+          eol = true;
+          break;
+        case '\r':
+          eol = true;
+          currentFile.mark(1);
+          if (currentFile.read() == '\n') {
+            currentPosition++;
+          } else {
+            currentFile.reset();
+          }
+          break;
+        default:
+          input.append((char) c);
+          break;
+      }
+
+      if (c != -1) {
+        currentPosition++;
+      }
+    }
+
+    if (c == -1 && input.length() == 0) {
+      return null;
+    }
+
+    return input.toString();
   }
 
   private Object parseLine(String line) throws EventLineParseException {
