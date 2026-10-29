@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cargotrackerm-mono-ingress
+  namespace: cargotrackerm-mono
+  labels:
+    app: cargotrackerm-mono
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/healthcheck-path: /rest/health
+spec:
+  rules:
+    - host: cargotrackerm-mono.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: cargotrackerm-mono-service
+                port:
+                  number: 80

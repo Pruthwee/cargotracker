@@ -124,6 +124,18 @@
   <build>
     <finalName>cargo-tracker</finalName>
     <plugins>
+      <!-- Pinned so that maven.compiler.release is honoured by older Maven versions -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.11.0</version>
+      </plugin>
+      <!-- Pinned so that the JUnit 5 tests run with older Maven versions -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${surefire.version}</version>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>

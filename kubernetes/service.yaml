@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cargotrackerm-mono-service
+  namespace: cargotrackerm-mono
+  labels:
+    app: cargotrackerm-mono
+spec:
+  type: ClusterIP
+  selector:
+    app: cargotrackerm-mono
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP

@@ -1,35 +1,30 @@
-# To run the cloud version locally, first build the application using:
+# Runs the application's own container. The PostgreSQL database is external: point DB_JDBC_URL
+# at it. Credentials come from the environment of the shell that runs compose:
 #
-#  ./mvnw clean package -Pcloud
-#      -DpostgreSqlJdbcUrl="jdbc:postgresql://postgres:5432/postgres"
-#      -DpostgreSqlUsername="cargotracker" -DpostgreSqlPassword="cargotracker"
+#   export DB_USER=... DB_PASSWORD=...
+#   export DB_JDBC_URL=jdbc:postgresql://host.docker.internal:5432/postgres
+#   docker compose up --build
 #
-# Then start the services with:
-#
-#  docker-compose up
-#
-version: '3.8'
+name: cargotrackerm-mono
 
 services:
-  postgres:
-    image: postgres:16
-    environment:
-      POSTGRES_USER: cargotracker
-      POSTGRES_PASSWORD: cargotracker
-      POSTGRES_DB: postgres
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-
-  cargotracker:
-    build: .
+  cargotrackerm-mono:
+    image: cargotrackerm-mono:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "8080:8080"
-    depends_on:
-      - postgres
     environment:
-      DB_HOST: postgres
+      DB_JDBC_URL: ${DB_JDBC_URL:?set DB_JDBC_URL}
+      DB_USER: ${DB_USER:?set DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD}
+      JAVA_OPTS: ${JAVA_OPTS:--Xmx512m -Xms256m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Dfile.encoding=UTF-8 -Duser.timezone=UTC}
+      TZ: UTC
+    volumes:
+      # Payara Micro unpacks the application and writes its runtime files here
+      - payara-runtime:/tmp
+    restart: unless-stopped
 
 volumes:
-  postgres-data:
+  payara-runtime:
