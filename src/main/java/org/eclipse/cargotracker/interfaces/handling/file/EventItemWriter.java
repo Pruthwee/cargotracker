@@ -1,10 +1,8 @@
 package org.eclipse.cargotracker.interfaces.handling.file;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.Serializable;
+import java.io.StringWriter;
 import java.util.List;
 import jakarta.batch.api.chunk.AbstractItemWriter;
 import jakarta.batch.runtime.context.JobContext;
@@ -14,6 +12,7 @@ import jakarta.inject.Named;
 import jakarta.transaction.Transactional;
 import org.eclipse.cargotracker.application.ApplicationEvents;
 import org.eclipse.cargotracker.application.util.DateConverter;
+import org.eclipse.cargotracker.infrastructure.storage.S3ObjectStore;
 import org.eclipse.cargotracker.interfaces.handling.HandlingEventRegistrationAttempt;
 
 @Dependent
@@ -24,30 +23,19 @@ public class EventItemWriter extends AbstractItemWriter {
 
   @Inject private JobContext jobContext;
   @Inject private ApplicationEvents applicationEvents;
+  @Inject private S3ObjectStore objectStore;
 
   @Override
   public void open(Serializable checkpoint) throws Exception {
-    File archiveDirectory = new File(jobContext.getProperties().getProperty(ARCHIVE_DIRECTORY));
-
-    if (!archiveDirectory.exists()) {
-      archiveDirectory.mkdirs();
-    }
+    // The archive lives under an S3 key prefix, which needs no folder to be created.
   }
 
   @Override
   @Transactional
   public void writeItems(List<Object> items) throws Exception {
-    try (PrintWriter archive =
-        new PrintWriter(
-            new BufferedWriter(
-                new FileWriter(
-                    jobContext.getProperties().getProperty(ARCHIVE_DIRECTORY)
-                        + "/archive_"
-                        + jobContext.getJobName()
-                        + "_"
-                        + jobContext.getInstanceId()
-                        + ".csv",
-                    true)))) {
+    StringWriter buffer = new StringWriter();
+
+    try (PrintWriter archive = new PrintWriter(buffer)) {
 
       items
           .stream()
@@ -69,5 +57,14 @@ public class EventItemWriter extends AbstractItemWriter {
                         + attempt.getType());
               });
     }
+
+    objectStore.append(
+        S3ObjectStore.prefixOf(jobContext.getProperties().getProperty(ARCHIVE_DIRECTORY))
+            + "archive_"
+            + jobContext.getJobName()
+            + "_"
+            + jobContext.getInstanceId()
+            + ".csv",
+        buffer.toString());
   }
 }

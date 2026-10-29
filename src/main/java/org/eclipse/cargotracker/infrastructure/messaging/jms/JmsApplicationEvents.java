@@ -1,5 +1,6 @@
 package org.eclipse.cargotracker.infrastructure.messaging.jms;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -11,7 +12,9 @@ import jakarta.jms.JMSContext;
 import org.eclipse.cargotracker.application.ApplicationEvents;
 import org.eclipse.cargotracker.domain.model.cargo.Cargo;
 import org.eclipse.cargotracker.domain.model.handling.HandlingEvent;
+import org.eclipse.cargotracker.infrastructure.messaging.sqs.SqsQueue;
 import org.eclipse.cargotracker.interfaces.handling.HandlingEventRegistrationAttempt;
+import software.amazon.awssdk.core.exception.SdkException;
 
 @ApplicationScoped
 public class JmsApplicationEvents implements ApplicationEvents, Serializable {
@@ -19,9 +22,6 @@ public class JmsApplicationEvents implements ApplicationEvents, Serializable {
   private static final long serialVersionUID = 1L;
   private static final int LOW_PRIORITY = 0;
   @Inject JMSContext jmsContext;
-
-  @Resource(lookup = "java:app/jms/CargoHandledQueue")
-  private Destination cargoHandledQueue;
 
   @Resource(lookup = "java:app/jms/MisdirectedCargoQueue")
   private Destination misdirectedCargoQueue;
@@ -34,16 +34,23 @@ public class JmsApplicationEvents implements ApplicationEvents, Serializable {
 
   @Inject private Logger logger;
 
+  @Inject private SqsQueue sqsQueue;
+
   @Override
   public void cargoWasHandled(HandlingEvent event) {
     Cargo cargo = event.getCargo();
     logger.log(Level.INFO, "Cargo was handled {0}", cargo);
-    jmsContext
-        .createProducer()
-        .setPriority(LOW_PRIORITY)
-        .setDisableMessageID(true)
-        .setDisableMessageTimestamp(true)
-        .send(cargoHandledQueue, cargo.getTrackingId().getIdString());
+    String queueUrl = System.getenv(SqsQueue.CARGO_HANDLED_QUEUE_URL_ENV);
+
+    try {
+      if (queueUrl == null || queueUrl.trim().isEmpty()) {
+        throw new IOException(SqsQueue.CARGO_HANDLED_QUEUE_URL_ENV + " is not set");
+      }
+
+      sqsQueue.send(queueUrl.trim(), cargo.getTrackingId().getIdString());
+    } catch (IOException | SdkException e) {
+      logger.log(Level.SEVERE, "Error sending cargo handled message to SQS", e);
+    }
   }
 
   @Override

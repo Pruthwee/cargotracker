@@ -2,7 +2,7 @@ package org.eclipse.cargotracker.application.util;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 
 // TODO [Clean Code] Make this a CDI singleton?
@@ -11,10 +11,10 @@ public class DateConverter {
   public static final String DATE_TIME_FORMAT = "M/d/yyyy h:m a";
 
   private static final DateTimeFormatter DATE_FORMATTER =
-      DateTimeFormatter.ofPattern(DATE_FORMAT).withZone(ZoneId.systemDefault());
+      DateTimeFormatter.ofPattern(DATE_FORMAT).withZone(ZoneOffset.UTC);
 
   private static final DateTimeFormatter DATE_TIME_FORMATTER =
-      DateTimeFormatter.ofPattern(DATE_TIME_FORMAT).withZone(ZoneId.systemDefault());
+      DateTimeFormatter.ofPattern(DATE_TIME_FORMAT).withZone(ZoneOffset.UTC);
 
   private DateConverter() {}
 

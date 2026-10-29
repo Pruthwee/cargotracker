@@ -1,11 +1,8 @@
 package org.eclipse.cargotracker.interfaces.handling.file;
 
-import java.io.File;
-import java.io.RandomAccessFile;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
-import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jakarta.batch.api.chunk.AbstractItemReader;
@@ -18,6 +15,7 @@ import org.eclipse.cargotracker.domain.model.cargo.TrackingId;
 import org.eclipse.cargotracker.domain.model.handling.HandlingEvent;
 import org.eclipse.cargotracker.domain.model.location.UnLocode;
 import org.eclipse.cargotracker.domain.model.voyage.VoyageNumber;
+import org.eclipse.cargotracker.infrastructure.storage.S3ObjectStore;
 import org.eclipse.cargotracker.interfaces.handling.HandlingEventRegistrationAttempt;
 
 @Dependent
@@ -29,60 +27,62 @@ public class EventItemReader extends AbstractItemReader {
   @Inject private Logger logger;
 
   @Inject private JobContext jobContext;
+  @Inject private S3ObjectStore objectStore;
   private EventFilesCheckpoint checkpoint;
-  private RandomAccessFile currentFile;
+
+  /** Content of the event file being processed, read from S3, and the read position in it. */
+  private byte[] currentFile;
+
+  private int currentPosition;
 
   @Override
   public void open(Serializable checkpoint) throws Exception {
-    File uploadDirectory = new File(jobContext.getProperties().getProperty(UPLOAD_DIRECTORY));
+    String uploadPrefix =
+        S3ObjectStore.prefixOf(jobContext.getProperties().getProperty(UPLOAD_DIRECTORY));
 
     if (checkpoint == null) {
       this.checkpoint = new EventFilesCheckpoint();
-      logger.log(Level.INFO, "Scanning upload directory: {0}", uploadDirectory);
+      logger.log(Level.INFO, "Scanning upload prefix in S3: {0}", uploadPrefix);
 
-      if (!uploadDirectory.exists()) {
-        logger.log(Level.INFO, "Upload directory does not exist, creating it");
-        uploadDirectory.mkdirs();
-      } else {
-        this.checkpoint.setFiles(Arrays.asList(uploadDirectory.listFiles()));
-      }
+      this.checkpoint.setFiles(objectStore.list(uploadPrefix));
     } else {
       logger.log(Level.INFO, "Starting from previous checkpoint");
       this.checkpoint = (EventFilesCheckpoint) checkpoint;
     }
 
-    File file = this.checkpoint.currentFile();
+    String file = this.checkpoint.currentFile();
 
     if (file == null) {
       logger.log(Level.INFO, "No files to process");
       currentFile = null;
     } else {
-      currentFile = new RandomAccessFile(file, "r");
+      currentFile = objectStore.read(file);
       logger.log(Level.INFO, "Processing file: {0}", file);
-      currentFile.seek(this.checkpoint.getFilePointer());
+      currentPosition = (int) this.checkpoint.getFilePointer();
     }
   }
 
   @Override
   public Object readItem() throws Exception {
     if (currentFile != null) {
-      String line = currentFile.readLine();
+      String line = readLine();
 
       if (line != null) {
-        this.checkpoint.setFilePointer(currentFile.getFilePointer());
+        this.checkpoint.setFilePointer(currentPosition);
         return parseLine(line);
       } else {
         logger.log(
             Level.INFO, "Finished processing file, deleting: {0}", this.checkpoint.currentFile());
-        currentFile.close();
-        this.checkpoint.currentFile().delete();
-        File nextFile = this.checkpoint.nextFile();
+        objectStore.delete(this.checkpoint.currentFile());
+        String nextFile = this.checkpoint.nextFile();
 
         if (nextFile == null) {
           logger.log(Level.INFO, "No more files to process");
+          currentFile = null;
           return null;
         } else {
-          currentFile = new RandomAccessFile(nextFile, "r");
+          currentFile = objectStore.read(nextFile);
+          currentPosition = 0;
           logger.log(Level.INFO, "Processing file: {0}", nextFile);
           return readItem();
         }
@@ -90,6 +90,32 @@ public class EventItemReader extends AbstractItemReader {
     } else {
       return null;
     }
+  }
+
+  /** Reads the next line the way RandomAccessFile.readLine did: \n, \r and \r\n end a line. */
+  private String readLine() {
+    if (currentPosition >= currentFile.length) {
+      return null;
+    }
+
+    StringBuilder line = new StringBuilder();
+
+    while (currentPosition < currentFile.length) {
+      int c = currentFile[currentPosition++] & 0xff;
+
+      if (c == '\n') {
+        break;
+      } else if (c == '\r') {
+        if (currentPosition < currentFile.length && currentFile[currentPosition] == '\n') {
+          currentPosition++;
+        }
+        break;
+      }
+
+      line.append((char) c);
+    }
+
+    return line.toString();
   }
 
   private Object parseLine(String line) throws EventLineParseException {

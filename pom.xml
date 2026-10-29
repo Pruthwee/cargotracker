@@ -30,6 +30,7 @@
     <cargo.plugin.version>1.10.18</cargo.plugin.version>
     <h2.version>2.3.232</h2.version>
     <payara.version>6.2025.3</payara.version>
+    <aws.sdk.version>2.57.6</aws.sdk.version>
     <payara.arquillian.adapter.version>3.1</payara.arquillian.adapter.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>    
   </properties>
@@ -52,6 +53,13 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
+      <dependency>
+        <groupId>software.amazon.awssdk</groupId>
+        <artifactId>bom</artifactId>
+        <version>${aws.sdk.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
   <dependencies>
@@ -71,6 +79,15 @@
       <artifactId>primefaces</artifactId>
       <version>14.0.5</version>
       <classifier>jakarta</classifier>
+    </dependency>
+    <!-- AWS SDK for Java v2: S3 object storage and SQS queue -->
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>s3</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>sqs</artifactId>
     </dependency>
     <!-- We need a Jersey specific dependency for property name constants -->
     <dependency>
