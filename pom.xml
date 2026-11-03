@@ -126,6 +126,14 @@
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.11.0</version>
+        <configuration>
+          <release>11</release>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>
         <version>3.4.0</version>
         <configuration>
@@ -325,19 +333,14 @@
         <activeByDefault>false</activeByDefault>
       </activation>
       <properties>
-        <webapp.graphTraversalUrl>http://localhost:8080/rest/graph-traversal/shortest-path</webapp.graphTraversalUrl>
+        <!-- Environment variables resolved by Payara at runtime.
+             Maven leaves ${ENV=...} unresolved (no matching Maven property),
+             so Payara resolves these at runtime via its ENV substitution. -->
+        <webapp.graphTraversalUrl>${ENV=GRAPH_TRAVERSAL_URL}</webapp.graphTraversalUrl>
         <db.driverClass>org.postgresql.ds.PGPoolingDataSource</db.driverClass>
-        <!-- Pass in via command line. For example:
-             ./mvnw clean package -Pcloud 
-                                  -DpostgreSqlJdbcUrl="jdbc:postgresql://host.docker.internal:5432/postgres" 
-                                  -DpostgreSqlUsername="postgres" -DpostgreSqlPassword="postgres"
-        -->
-        <!--suppress UnresolvedMavenProperty -->
-        <db.jdbcUrl>${postgreSqlJdbcUrl}</db.jdbcUrl>
-        <!--suppress UnresolvedMavenProperty -->
-        <db.user>${postgreSqlUsername}</db.user>
-        <!--suppress UnresolvedMavenProperty -->
-        <db.password>${postgreSqlPassword}</db.password>
+        <db.jdbcUrl>${ENV=DB_URL}</db.jdbcUrl>
+        <db.user>${ENV=DB_USER}</db.user>
+        <db.password>${ENV=DB_PASSWORD}</db.password>
       </properties>
       <dependencies>
         <!-- Embedding the JDBC driver in the WAR works in Payara Micro -->
@@ -379,20 +382,39 @@
                 <goals>
                   <goal>copy</goal>
                 </goals>
+                <configuration>
+                  <artifactItems>
+                    <artifactItem>
+                      <groupId>org.postgresql</groupId>
+                      <artifactId>postgresql</artifactId>
+                      <version>42.7.5</version>
+                      <overWrite>true</overWrite>
+                      <outputDirectory>${project.build.directory}</outputDirectory>
+                      <destFileName>postgresql.jar</destFileName>
+                    </artifactItem>
+                  </artifactItems>
+                </configuration>
+              </execution>
+              <execution>
+                <id>copy-payara-micro</id>
+                <phase>prepare-package</phase>
+                <goals>
+                  <goal>copy</goal>
+                </goals>
+                <configuration>
+                  <artifactItems>
+                    <artifactItem>
+                      <groupId>fish.payara.extras</groupId>
+                      <artifactId>payara-micro</artifactId>
+                      <version>${payara.version}</version>
+                      <overWrite>true</overWrite>
+                      <outputDirectory>${project.build.directory}</outputDirectory>
+                      <destFileName>payara-micro.jar</destFileName>
+                    </artifactItem>
+                  </artifactItems>
+                </configuration>
               </execution>
             </executions>
-            <configuration>
-              <artifactItems>
-                <artifactItem>
-                  <groupId>org.postgresql</groupId>
-                  <artifactId>postgresql</artifactId>
-                  <version>42.7.5</version>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${project.build.directory}</outputDirectory>
-                  <destFileName>postgresql.jar</destFileName>
-                </artifactItem>
-              </artifactItems>
-            </configuration>
           </plugin>
         </plugins>
       </build>
