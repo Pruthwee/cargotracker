@@ -126,10 +126,32 @@
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.11.0</version>
+        <configuration>
+          <release>11</release>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>
         <version>3.4.0</version>
         <configuration>
-          <filteringDeploymentDescriptors>true</filteringDeploymentDescriptors>
+          <filteringDeploymentDescriptors>false</filteringDeploymentDescriptors>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${surefire.version}</version>
+        <configuration>
+          <environmentVariables>
+            <DB_DRIVER_CLASS>org.h2.jdbcx.JdbcDataSource</DB_DRIVER_CLASS>
+            <DB_JDBC_URL>jdbc:h2:file:./cargo-tracker-data/cargo-tracker-data</DB_JDBC_URL>
+            <DB_USER></DB_USER>
+            <DB_PASSWORD></DB_PASSWORD>
+            <GRAPH_TRAVERSAL_URL>http://localhost:8080/cargo-tracker/rest/graph-traversal/shortest-path</GRAPH_TRAVERSAL_URL>
+          </environmentVariables>
         </configuration>
       </plugin>
     </plugins>
@@ -327,17 +349,9 @@
       <properties>
         <webapp.graphTraversalUrl>http://localhost:8080/rest/graph-traversal/shortest-path</webapp.graphTraversalUrl>
         <db.driverClass>org.postgresql.ds.PGPoolingDataSource</db.driverClass>
-        <!-- Pass in via command line. For example:
-             ./mvnw clean package -Pcloud 
-                                  -DpostgreSqlJdbcUrl="jdbc:postgresql://host.docker.internal:5432/postgres" 
-                                  -DpostgreSqlUsername="postgres" -DpostgreSqlPassword="postgres"
-        -->
-        <!--suppress UnresolvedMavenProperty -->
-        <db.jdbcUrl>${postgreSqlJdbcUrl}</db.jdbcUrl>
-        <!--suppress UnresolvedMavenProperty -->
-        <db.user>${postgreSqlUsername}</db.user>
-        <!--suppress UnresolvedMavenProperty -->
-        <db.password>${postgreSqlPassword}</db.password>
+        <db.jdbcUrl>jdbc:postgresql://localhost:5432/postgres</db.jdbcUrl>
+        <db.user>cargotracker</db.user>
+        <db.password></db.password>
       </properties>
       <dependencies>
         <!-- Embedding the JDBC driver in the WAR works in Payara Micro -->
