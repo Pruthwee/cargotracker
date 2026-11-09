@@ -1,35 +1,37 @@
-# To run the cloud version locally, first build the application using:
+# To run locally, first build the Docker image:
 #
-#  ./mvnw clean package -Pcloud
-#      -DpostgreSqlJdbcUrl="jdbc:postgresql://postgres:5432/postgres"
-#      -DpostgreSqlUsername="cargotracker" -DpostgreSqlPassword="cargotracker"
+#  docker build -f Dockerfile -t cargotracker .
 #
-# Then start the services with:
+# Then start the application with:
 #
 #  docker-compose up
+#
+# The application connects to external services (database, message broker) via
+# environment variables. Set them in your shell before running docker-compose:
+#
+#  export DB_HOST=localhost
+#  export DB_PORT=5432
+#  export DB_USER=cargotracker
+#  export DB_PASSWORD=cargotracker
+#  export DB_URL=jdbc:postgresql://localhost:5432/cargotracker
+#  export GRAPH_TRAVERSAL_URL=http://localhost:8080/cargo-tracker/rest/graph-traversal/shortest-path
 #
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:16
-    environment:
-      POSTGRES_USER: cargotracker
-      POSTGRES_PASSWORD: cargotracker
-      POSTGRES_DB: postgres
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-
   cargotracker:
-    build: .
+    image: cargotracker
     ports:
       - "8080:8080"
-    depends_on:
-      - postgres
     environment:
-      DB_HOST: postgres
+      DB_HOST: ${DB_HOST:-localhost}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_USER: ${DB_USER:-cargotracker}
+      DB_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD}
+      DB_URL: ${DB_URL:-jdbc:postgresql://localhost:5432/cargotracker}
+      GRAPH_TRAVERSAL_URL: ${GRAPH_TRAVERSAL_URL:-http://localhost:8080/cargo-tracker/rest/graph-traversal/shortest-path}
+    volumes:
+      - cargotracker-data:/cargo-tracker-data
 
 volumes:
-  postgres-data:
+  cargotracker-data:
