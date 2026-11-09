@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jakarta.batch.api.chunk.listener.SkipReadListener;
@@ -45,6 +46,7 @@ public class LineParseExceptionListener implements SkipReadListener {
                             + "_"
                             + jobContext.getInstanceId()
                             + ".csv"),
+                    StandardCharsets.UTF_8,
                     true)))) {
       failed.println(parseException.getLine());
     }
