@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import jakarta.batch.api.chunk.AbstractItemWriter;
 import jakarta.batch.runtime.context.JobContext;
@@ -47,6 +48,7 @@ public class EventItemWriter extends AbstractItemWriter {
                         + "_"
                         + jobContext.getInstanceId()
                         + ".csv",
+                    StandardCharsets.UTF_8,
                     true)))) {
 
       items

@@ -23,14 +23,14 @@
     <url>https://github.com/eclipse-ee4j/cargotracker/issues</url>
   </issueManagement>
   <properties>
-    <maven.compiler.release>11</maven.compiler.release>
-    <jakartaee.api.version>10.0.0</jakartaee.api.version>
+    <maven.compiler.release>25</maven.compiler.release>
+    <jakartaee.api.version>11.0.0</jakartaee.api.version>
     <surefire.version>3.5.2</surefire.version>
     <dependency.plugin.version>3.8.1</dependency.plugin.version>
     <cargo.plugin.version>1.10.18</cargo.plugin.version>
     <h2.version>2.3.232</h2.version>
-    <payara.version>6.2025.3</payara.version>
-    <payara.arquillian.adapter.version>3.1</payara.arquillian.adapter.version>
+    <payara.version>7.2025.2</payara.version>
+    <payara.arquillian.adapter.version>4.0.alpha4</payara.arquillian.adapter.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>    
   </properties>
   <dependencyManagement>
@@ -76,7 +76,14 @@
     <dependency>
       <groupId>org.glassfish.jersey.core</groupId>
       <artifactId>jersey-server</artifactId>
-      <version>3.1.10</version>
+      <version>4.0.3</version>
+      <scope>provided</scope>
+    </dependency>
+    <!-- Jakarta XML Bind is no longer part of Jakarta EE 11 -->
+    <dependency>
+      <groupId>jakarta.xml.bind</groupId>
+      <artifactId>jakarta.xml.bind-api</artifactId>
+      <version>4.0.5</version>
       <scope>provided</scope>
     </dependency>    
     <!-- Test dependencies -->
@@ -126,11 +133,21 @@
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.13.0</version>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>
         <version>3.4.0</version>
         <configuration>
           <filteringDeploymentDescriptors>true</filteringDeploymentDescriptors>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${surefire.version}</version>
       </plugin>
     </plugins>
   </build>
@@ -172,10 +189,10 @@
           <version>${payara.arquillian.adapter.version}</version>
           <scope>test</scope>
         </dependency>
-        <!-- Needed at the moment for Jakarta EE 10 support -->
+        <!-- Needed for Jakarta EE 11 support -->
         <dependency>
           <groupId>fish.payara.arquillian</groupId>
-          <artifactId>payara-client-ee9</artifactId>
+          <artifactId>payara-client-ee11</artifactId>
           <version>${payara.arquillian.adapter.version}</version>
           <scope>test</scope>
         </dependency>        
@@ -204,7 +221,7 @@
     <profile>
       <id>glassfish</id>
       <properties>
-        <glassfish.version>7.0.22</glassfish.version>
+        <glassfish.version>8.0.5</glassfish.version>
         <!-- Application properties -->
         <webapp.graphTraversalUrl>http://localhost:8080/cargo-tracker/rest/graph-traversal/shortest-path</webapp.graphTraversalUrl>
         <db.driverClass>org.h2.jdbcx.JdbcDataSource</db.driverClass>
@@ -235,7 +252,7 @@
         <dependency>
           <groupId>org.glassfish.jersey.inject</groupId>
           <artifactId>jersey-hk2</artifactId>
-          <version>3.1.10</version>
+          <version>4.0.3</version>
           <scope>test</scope>
         </dependency>
       </dependencies>
@@ -250,7 +267,7 @@
                 <arquillian.launch>glassfish</arquillian.launch>
               </systemPropertyVariables>
               <environmentVariables>
-                <GLASSFISH_HOME>${project.build.directory}/glassfish7</GLASSFISH_HOME>
+                <GLASSFISH_HOME>${project.build.directory}/glassfish8</GLASSFISH_HOME>
               </environmentVariables>
             </configuration>
           </plugin>
@@ -260,7 +277,7 @@
             <version>${cargo.plugin.version}</version>
             <configuration>
               <container>
-                <containerId>glassfish7x</containerId>
+                <containerId>glassfish8x</containerId>
                 <artifactInstaller>
                   <groupId>org.glassfish.main.distributions</groupId>
                   <artifactId>glassfish</artifactId>
@@ -306,7 +323,7 @@
                 <phase>process-test-classes</phase>
                 <configuration>
                   <target>
-                    <replace file="${project.build.directory}/glassfish7/glassfish/domains/domain1/config/domain.xml" token="&quot;8080&quot;" value="&quot;9090&quot;"/>
+                    <replace file="${project.build.directory}/glassfish8/glassfish/domains/domain1/config/domain.xml" token="&quot;8080&quot;" value="&quot;9090&quot;"/>
                   </target>
                 </configuration>
                 <goals>
@@ -361,7 +378,7 @@
         </dependency>
         <dependency>
           <groupId>fish.payara.arquillian</groupId>
-          <artifactId>payara-client-ee9</artifactId>
+          <artifactId>payara-client-ee11</artifactId>
           <version>${payara.arquillian.adapter.version}</version>
           <scope>test</scope>
         </dependency>

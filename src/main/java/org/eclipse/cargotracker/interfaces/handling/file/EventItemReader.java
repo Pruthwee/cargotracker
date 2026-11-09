@@ -1,8 +1,11 @@
 package org.eclipse.cargotracker.interfaces.handling.file;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.Arrays;
@@ -66,7 +69,7 @@ public class EventItemReader extends AbstractItemReader {
   @Override
   public Object readItem() throws Exception {
     if (currentFile != null) {
-      String line = currentFile.readLine();
+      String line = readLineUtf8(currentFile);
 
       if (line != null) {
         this.checkpoint.setFilePointer(currentFile.getFilePointer());
@@ -90,6 +93,33 @@ public class EventItemReader extends AbstractItemReader {
     } else {
       return null;
     }
+  }
+
+  /**
+   * Reads a line from the RandomAccessFile using UTF-8 encoding, mirroring the
+   * behavior of RandomAccessFile.readLine() but with an explicit charset. The
+   * file pointer advances past the line terminator, just as readLine() does.
+   */
+  private static String readLineUtf8(RandomAccessFile raf) throws IOException {
+    ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+    int c;
+    while ((c = raf.read()) != -1) {
+      if (c == '\n') {
+        break;
+      }
+      if (c == '\r') {
+        long next = raf.read();
+        if (next != '\n' && next != -1) {
+          raf.seek(raf.getFilePointer() - 1);
+        }
+        break;
+      }
+      buffer.write(c);
+    }
+    if (c == -1 && buffer.size() == 0) {
+      return null;
+    }
+    return buffer.toString(StandardCharsets.UTF_8.name());
   }
 
   private Object parseLine(String line) throws EventLineParseException {
