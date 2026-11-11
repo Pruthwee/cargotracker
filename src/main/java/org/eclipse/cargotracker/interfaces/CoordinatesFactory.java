@@ -18,6 +18,8 @@ import static org.eclipse.cargotracker.domain.model.location.SampleLocations.TOK
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import jakarta.enterprise.context.Dependent;
+import jakarta.inject.Inject;
 import org.eclipse.cargotracker.domain.model.location.Location;
 import org.eclipse.cargotracker.domain.model.location.UnLocode;
 
@@ -25,27 +27,13 @@ import org.eclipse.cargotracker.domain.model.location.UnLocode;
  * At the moment, coordinates are produced by a simple factory. It may be converted to a repository
  * if coordinates become a domain layer concern.
  */
+@Dependent
 public class CoordinatesFactory {
 
-  private static final Map<String, Coordinates> COORDINATES_MAP;
+  private final Map<String, Coordinates> coordinatesMap;
 
-  private CoordinatesFactory() {
-    /* Prevent instantiation. */
-  }
-
-  public static Coordinates find(Location location) {
-    return find(location.getUnLocode());
-  }
-
-  public static Coordinates find(UnLocode unLocode) {
-    return find(unLocode.getIdString());
-  }
-
-  public static Coordinates find(String unLocode) {
-    return COORDINATES_MAP.get(unLocode);
-  }
-
-  static {
+  @Inject
+  public CoordinatesFactory() {
     Map<String, Coordinates> map = new HashMap<>();
 
     // TODO [Clean Code] See if there is a service to get the latitude/longitude data from.
@@ -64,6 +52,18 @@ public class CoordinatesFactory {
     map.put(DALLAS.getUnLocode().getIdString(), new Coordinates(33, -97));
     map.put(UNKNOWN.getUnLocode().getIdString(), new Coordinates(-90, 0)); // The South Pole.
 
-    COORDINATES_MAP = Collections.unmodifiableMap(map);
+    coordinatesMap = Collections.unmodifiableMap(map);
+  }
+
+  public Coordinates find(Location location) {
+    return find(location.getUnLocode());
+  }
+
+  public Coordinates find(UnLocode unLocode) {
+    return find(unLocode.getIdString());
+  }
+
+  public Coordinates find(String unLocode) {
+    return coordinatesMap.get(unLocode);
   }
 }

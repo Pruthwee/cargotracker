@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import jakarta.enterprise.context.Dependent;
+import jakarta.inject.Inject;
 import org.eclipse.cargotracker.application.util.DateConverter;
 import org.eclipse.cargotracker.domain.model.cargo.Cargo;
 import org.eclipse.cargotracker.domain.model.cargo.Delivery;
@@ -13,10 +15,13 @@ import org.eclipse.cargotracker.interfaces.Coordinates;
 import org.eclipse.cargotracker.interfaces.CoordinatesFactory;
 
 /** View adapter for displaying a cargo in a tracking context. */
+@Dependent
 public class CargoTrackingViewAdapter {
 
   private final Cargo cargo;
   private final List<HandlingEventViewAdapter> events;
+
+  @Inject private CoordinatesFactory coordinatesFactory;
 
   public CargoTrackingViewAdapter(Cargo cargo, List<HandlingEvent> handlingEvents) {
     this.cargo = cargo;
@@ -38,7 +43,7 @@ public class CargoTrackingViewAdapter {
   }
 
   public Coordinates getOriginCoordinates() {
-    return CoordinatesFactory.find(cargo.getRouteSpecification().getOrigin());
+    return coordinatesFactory.find(cargo.getRouteSpecification().getOrigin());
   }
 
   public String getDestinationName() {
@@ -50,7 +55,7 @@ public class CargoTrackingViewAdapter {
   }
 
   public Coordinates getDestinationCoordinates() {
-    return CoordinatesFactory.find(cargo.getRouteSpecification().getDestination());
+    return coordinatesFactory.find(cargo.getRouteSpecification().getDestination());
   }
 
   public String getLastKnownLocationName() {
@@ -64,7 +69,7 @@ public class CargoTrackingViewAdapter {
   }
 
   public Coordinates getLastKnownLocationCoordinates() {
-    return CoordinatesFactory.find(cargo.getDelivery().getLastKnownLocation());
+    return coordinatesFactory.find(cargo.getDelivery().getLastKnownLocation());
   }
 
   public String getStatusCode() {

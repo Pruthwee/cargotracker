@@ -5,11 +5,11 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.logging.Logger;
 import jakarta.annotation.PostConstruct;
-import jakarta.ejb.Singleton;
-import jakarta.ejb.Startup;
-import jakarta.ejb.TransactionAttribute;
-import jakarta.ejb.TransactionAttributeType;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.Initialized;
+import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
 import jakarta.persistence.NoResultException;
@@ -28,8 +28,7 @@ import org.eclipse.cargotracker.domain.model.location.SampleLocations;
 import org.eclipse.cargotracker.domain.model.voyage.SampleVoyages;
 
 /** Loads sample data for demo. */
-@Singleton
-@Startup
+@ApplicationScoped
 public class SampleDataGenerator {
 
   @Inject private Logger logger;
@@ -39,7 +38,7 @@ public class SampleDataGenerator {
   @Inject private HandlingEventRepository handlingEventRepository;
 
   @PostConstruct
-  @TransactionAttribute(TransactionAttributeType.REQUIRED)
+  @Transactional
   public void loadSampleData() {
     if (!isSampleLoaded()) {
       logger.info("Loading sample data.");
@@ -49,6 +48,11 @@ public class SampleDataGenerator {
     } else {
       logger.info("Sample data already loaded, skipping.");
     }
+  }
+
+  /** Eager initialization to replace EJB @Startup behavior. */
+  void onStart(@Observes @Initialized(ApplicationScoped.class) Object init) {
+    // Ensures the bean is initialized at application startup.
   }
 
   private boolean isSampleLoaded() {

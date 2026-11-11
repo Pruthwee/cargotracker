@@ -3,33 +3,37 @@ package org.eclipse.cargotracker.application;
 import java.util.List;
 import java.util.logging.Logger;
 import jakarta.annotation.PostConstruct;
-import jakarta.ejb.Singleton;
-import jakarta.ejb.Startup;
-import jakarta.ejb.TransactionAttribute;
-import jakarta.ejb.TransactionAttributeType;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.Initialized;
+import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.transaction.Transactional;
 import org.eclipse.cargotracker.domain.model.cargo.Cargo;
 import org.eclipse.cargotracker.domain.model.location.SampleLocations;
 import org.eclipse.cargotracker.domain.model.voyage.SampleVoyages;
 
 /** Loads sample data for demo. */
-@Singleton
-@Startup
+@ApplicationScoped
 public class BookingServiceTestDataGenerator {
 
   @Inject private Logger logger;
   @PersistenceContext private EntityManager entityManager;
 
   @PostConstruct
-  @TransactionAttribute(TransactionAttributeType.REQUIRED)
+  @Transactional
   public void loadSampleData() {
     logger.info("Loading sample data.");
     unLoadAll();
     loadSampleLocations();
     loadSampleVoyages();
     // loadSampleCargos();
+  }
+
+  /** Eager initialization to replace EJB @Startup behavior. */
+  void onStart(@Observes @Initialized(ApplicationScoped.class) Object init) {
+    // Ensures the bean is initialized at application startup.
   }
 
   private void unLoadAll() {

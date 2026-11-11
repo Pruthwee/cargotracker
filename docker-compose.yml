@@ -1,35 +1,15 @@
-# To run the cloud version locally, first build the application using:
-#
-#  ./mvnw clean package -Pcloud
-#      -DpostgreSqlJdbcUrl="jdbc:postgresql://postgres:5432/postgres"
-#      -DpostgreSqlUsername="cargotracker" -DpostgreSqlPassword="cargotracker"
-#
-# Then start the services with:
-#
-#  docker-compose up
-#
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:16
-    environment:
-      POSTGRES_USER: cargotracker
-      POSTGRES_PASSWORD: cargotracker
-      POSTGRES_DB: postgres
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-
   cargotracker:
     build: .
+    image: cargotracker:latest
     ports:
       - "8080:8080"
-    depends_on:
-      - postgres
     environment:
-      DB_HOST: postgres
-
-volumes:
-  postgres-data:
+      DB_DRIVER_CLASS: ${DB_DRIVER_CLASS:-org.postgresql.ds.PGPoolingDataSource}
+      DB_JDBC_URL: ${DB_JDBC_URL:-jdbc:postgresql://localhost:5432/postgres}
+      DB_USER: ${DB_USER:-cargotracker}
+      DB_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD}
+      GRAPH_TRAVERSAL_URL: ${GRAPH_TRAVERSAL_URL:-http://localhost:8080/cargo-tracker/rest/graph-traversal/shortest-path}
+      PROJECT_STAGE: ${PROJECT_STAGE:-Production}

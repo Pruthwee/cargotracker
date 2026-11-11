@@ -3,7 +3,7 @@ package org.eclipse.cargotracker.interfaces.booking.facade.internal.assembler;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Inject;
 import org.eclipse.cargotracker.application.util.DateConverter;
 import org.eclipse.cargotracker.domain.model.cargo.Itinerary;
@@ -16,7 +16,7 @@ import org.eclipse.cargotracker.domain.model.voyage.VoyageNumber;
 import org.eclipse.cargotracker.domain.model.voyage.VoyageRepository;
 import org.eclipse.cargotracker.interfaces.booking.facade.dto.RouteCandidate;
 
-@ApplicationScoped
+@Dependent
 public class ItineraryCandidateDtoAssembler {
 
   @Inject private LocationDtoAssembler locationDtoAssembler;

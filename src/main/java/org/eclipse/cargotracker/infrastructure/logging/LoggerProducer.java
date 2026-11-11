@@ -2,11 +2,11 @@ package org.eclipse.cargotracker.infrastructure.logging;
 
 import java.io.Serializable;
 import java.util.logging.Logger;
-import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.Dependent;
 import jakarta.enterprise.inject.Produces;
 import jakarta.enterprise.inject.spi.InjectionPoint;
 
-@ApplicationScoped
+@Dependent
 public class LoggerProducer implements Serializable {
 
   private static final long serialVersionUID = 1L;
