@@ -66,6 +66,7 @@ import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -75,11 +76,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
  */
 @ExtendWith(ArquillianExtension.class)
 @TestMethodOrder(OrderAnnotation.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class BookingServiceTest {
-  private static TrackingId trackingId;
-  private static List<Itinerary> candidates;
-  private static LocalDate deadline;
-  private static Itinerary assigned;
+  private TrackingId trackingId;
+  private List<Itinerary> candidates;
+  private LocalDate deadline;
+  private Itinerary assigned;
 
   @Inject private BookingService bookingService;
   @PersistenceContext private EntityManager entityManager;

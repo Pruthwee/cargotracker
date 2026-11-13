@@ -64,6 +64,5 @@ public class CoordinatesFactory {
     map.put(DALLAS.getUnLocode().getIdString(), new Coordinates(33, -97));
     map.put(UNKNOWN.getUnLocode().getIdString(), new Coordinates(-90, 0)); // The South Pole.
 
-    COORDINATES_MAP = Collections.unmodifiableMap(map);
-  }
+    COORDINATES_MAP = Collections.unmodifiableMap(map);  }
 }

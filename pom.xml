@@ -52,6 +52,14 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
+      <!-- AWS SDK for Java v2 BOM - pins all AWS SDK versions -->
+      <dependency>
+        <groupId>software.amazon.awssdk</groupId>
+        <artifactId>bom</artifactId>
+        <version>2.59.0</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
   <dependencies>
@@ -65,6 +73,22 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
+    </dependency>
+    <!-- AWS SDK for Java v2 - S3 for object storage replacement of local files -->
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>s3</artifactId>
+    </dependency>
+    <!-- AWS SDK for Java v2 - SQS for messaging replacement of JMS -->
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>sqs</artifactId>
+    </dependency>
+    <!-- Redis client for ElastiCache - replaces static mutable variables with distributed state -->
+    <dependency>
+      <groupId>io.lettuce</groupId>
+      <artifactId>lettuce-core</artifactId>
+      <version>6.5.5.RELEASE</version>
     </dependency>
     <dependency>
       <groupId>org.primefaces</groupId>
@@ -124,6 +148,14 @@
   <build>
     <finalName>cargo-tracker</finalName>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.11.0</version>
+        <configuration>
+          <release>11</release>
+        </configuration>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>

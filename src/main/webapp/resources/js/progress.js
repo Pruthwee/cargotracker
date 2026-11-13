@@ -13,10 +13,14 @@ $(function () {
       className: 'topbar'
     })
   }
-  resetToDefaults()
-  topbar.show()
-  setTimeout(function () {
-    $('#container').fadeIn('slow')
-    topbar.hide()
-  }, 1500)
+
+  async function fadeInContainer() {
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    $('#container').fadeIn('slow');
+    topbar.hide();
+  }
+
+  resetToDefaults();
+  topbar.show();
+  fadeInContainer();
 })

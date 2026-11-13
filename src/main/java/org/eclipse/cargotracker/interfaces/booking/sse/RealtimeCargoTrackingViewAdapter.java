@@ -1,5 +1,6 @@
 package org.eclipse.cargotracker.interfaces.booking.sse;
 
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
 import org.eclipse.cargotracker.domain.model.cargo.Cargo;
@@ -9,10 +10,8 @@ import org.eclipse.cargotracker.domain.model.cargo.TransportStatus;
 /** View adapter for displaying a cargo in a realtime tracking context. */
 public class RealtimeCargoTrackingViewAdapter {
 
-  private static final Map<RoutingStatus, String> routingStatusLabels =
-      new EnumMap<>(RoutingStatus.class);
-  private static final Map<TransportStatus, String> transportStatusLabels =
-      new EnumMap<>(TransportStatus.class);
+  private static final Map<RoutingStatus, String> routingStatusLabels;
+  private static final Map<TransportStatus, String> transportStatusLabels;
 
   private final Cargo cargo;
 
@@ -73,14 +72,18 @@ public class RealtimeCargoTrackingViewAdapter {
   }
 
   static {
-    routingStatusLabels.put(RoutingStatus.NOT_ROUTED, "Not routed");
-    routingStatusLabels.put(RoutingStatus.ROUTED, "Routed");
-    routingStatusLabels.put(RoutingStatus.MISROUTED, "Misrouted");
+    Map<RoutingStatus, String> routingLabels = new EnumMap<>(RoutingStatus.class);
+    routingLabels.put(RoutingStatus.NOT_ROUTED, "Not routed");
+    routingLabels.put(RoutingStatus.ROUTED, "Routed");
+    routingLabels.put(RoutingStatus.MISROUTED, "Misrouted");
+    routingStatusLabels = Collections.unmodifiableMap(routingLabels);
 
-    transportStatusLabels.put(TransportStatus.NOT_RECEIVED, "Not received");
-    transportStatusLabels.put(TransportStatus.IN_PORT, "In port");
-    transportStatusLabels.put(TransportStatus.ONBOARD_CARRIER, "Onboard carrier");
-    transportStatusLabels.put(TransportStatus.CLAIMED, "Claimed");
-    transportStatusLabels.put(TransportStatus.UNKNOWN, "Unknown");
+    Map<TransportStatus, String> transportLabels = new EnumMap<>(TransportStatus.class);
+    transportLabels.put(TransportStatus.NOT_RECEIVED, "Not received");
+    transportLabels.put(TransportStatus.IN_PORT, "In port");
+    transportLabels.put(TransportStatus.ONBOARD_CARRIER, "Onboard carrier");
+    transportLabels.put(TransportStatus.CLAIMED, "Claimed");
+    transportLabels.put(TransportStatus.UNKNOWN, "Unknown");
+    transportStatusLabels = Collections.unmodifiableMap(transportLabels);
   }
 }

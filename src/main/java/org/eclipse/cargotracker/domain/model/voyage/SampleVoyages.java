@@ -268,19 +268,21 @@ public class SampleVoyages {
                   .plusMinutes(37))
           .build();
 
-  public static final Map<VoyageNumber, Voyage> ALL = new HashMap<>();
+  public static final Map<VoyageNumber, Voyage> ALL;
 
   static {
+    Map<VoyageNumber, Voyage> all = new HashMap<>();
     for (Field field : SampleVoyages.class.getDeclaredFields()) {
       if (field.getType().equals(Voyage.class)) {
         try {
           Voyage voyage = (Voyage) field.get(null);
-          ALL.put(voyage.getVoyageNumber(), voyage);
+          all.put(voyage.getVoyageNumber(), voyage);
         } catch (IllegalAccessException e) {
           throw new RuntimeException(e);
         }
       }
     }
+    ALL = Collections.unmodifiableMap(all);
   }
 
   private static Voyage createVoyage(String id, Location from, Location to) {

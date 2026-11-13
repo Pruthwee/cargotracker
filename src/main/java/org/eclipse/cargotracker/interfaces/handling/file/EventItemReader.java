@@ -1,13 +1,15 @@
 package org.eclipse.cargotracker.interfaces.handling.file;
 
-import java.io.File;
-import java.io.RandomAccessFile;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
-import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import jakarta.batch.api.chunk.AbstractItemReader;
 import jakarta.batch.runtime.context.JobContext;
 import jakarta.enterprise.context.Dependent;
@@ -19,6 +21,12 @@ import org.eclipse.cargotracker.domain.model.handling.HandlingEvent;
 import org.eclipse.cargotracker.domain.model.location.UnLocode;
 import org.eclipse.cargotracker.domain.model.voyage.VoyageNumber;
 import org.eclipse.cargotracker.interfaces.handling.HandlingEventRegistrationAttempt;
+import software.amazon.awssdk.core.exception.SdkException;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
+import software.amazon.awssdk.services.s3.model.S3Object;
 
 @Dependent
 @Named("EventItemReader")
@@ -30,60 +38,107 @@ public class EventItemReader extends AbstractItemReader {
 
   @Inject private JobContext jobContext;
   private EventFilesCheckpoint checkpoint;
-  private RandomAccessFile currentFile;
+  private BufferedReader currentReader;
+  private String currentKey;
+
+  private S3Client s3Client;
+  private String bucketName;
 
   @Override
   public void open(Serializable checkpoint) throws Exception {
-    File uploadDirectory = new File(jobContext.getProperties().getProperty(UPLOAD_DIRECTORY));
+    String uploadPrefix = jobContext.getProperties().getProperty(UPLOAD_DIRECTORY);
 
-    if (checkpoint == null) {
-      this.checkpoint = new EventFilesCheckpoint();
-      logger.log(Level.INFO, "Scanning upload directory: {0}", uploadDirectory);
-
-      if (!uploadDirectory.exists()) {
-        logger.log(Level.INFO, "Upload directory does not exist, creating it");
-        uploadDirectory.mkdirs();
-      } else {
-        this.checkpoint.setFiles(Arrays.asList(uploadDirectory.listFiles()));
+    try {
+      s3Client = S3Client.create();
+      bucketName = System.getenv("APP_S3_BUCKET");
+      if (bucketName == null || bucketName.isEmpty()) {
+        logger.log(Level.WARNING, "APP_S3_BUCKET is not set, no files to process");
+        this.checkpoint = new EventFilesCheckpoint();
+        return;
       }
-    } else {
-      logger.log(Level.INFO, "Starting from previous checkpoint");
-      this.checkpoint = (EventFilesCheckpoint) checkpoint;
-    }
 
-    File file = this.checkpoint.currentFile();
+      if (checkpoint == null) {
+        this.checkpoint = new EventFilesCheckpoint();
+        logger.log(Level.INFO, "Scanning upload prefix: {0}", uploadPrefix);
 
-    if (file == null) {
-      logger.log(Level.INFO, "No files to process");
-      currentFile = null;
-    } else {
-      currentFile = new RandomAccessFile(file, "r");
-      logger.log(Level.INFO, "Processing file: {0}", file);
-      currentFile.seek(this.checkpoint.getFilePointer());
+        ListObjectsV2Request listRequest =
+            ListObjectsV2Request.builder().bucket(bucketName).prefix(uploadPrefix).build();
+
+        ListObjectsV2Response response = s3Client.listObjectsV2(listRequest);
+
+        List<String> keys =
+            response.contents().stream()
+                .filter(obj -> !obj.key().endsWith("/"))
+                .map(S3Object::key)
+                .collect(Collectors.toList());
+
+        this.checkpoint.setFiles(keys);
+      } else {
+        logger.log(Level.INFO, "Starting from previous checkpoint");
+        this.checkpoint = (EventFilesCheckpoint) checkpoint;
+      }
+
+      String key = this.checkpoint.currentFile();
+
+      if (key == null) {
+        logger.log(Level.INFO, "No files to process");
+        currentReader = null;
+        currentKey = null;
+      } else {
+        currentKey = key;
+        logger.log(Level.INFO, "Processing file: {0}", key);
+        GetObjectRequest getRequest =
+            GetObjectRequest.builder().bucket(bucketName).key(key).build();
+        currentReader =
+            new BufferedReader(
+                new InputStreamReader(
+                    s3Client.getObjectAsBytes(getRequest).asInputStream(),
+                    StandardCharsets.UTF_8));
+        long skipped = currentReader.skip(this.checkpoint.getFilePointer());
+        logger.log(Level.INFO, "Skipped {0} bytes", skipped);
+      }
+    } catch (SdkException e) {
+      logger.log(Level.WARNING, "Failed to access S3 for upload directory, no files to process", e);
+      this.checkpoint = new EventFilesCheckpoint();
     }
   }
 
   @Override
   public Object readItem() throws Exception {
-    if (currentFile != null) {
-      String line = currentFile.readLine();
+    if (currentReader != null) {
+      String line = currentReader.readLine();
 
       if (line != null) {
-        this.checkpoint.setFilePointer(currentFile.getFilePointer());
+        this.checkpoint.setFilePointer(this.checkpoint.getFilePointer() + line.length() + 1);
         return parseLine(line);
       } else {
         logger.log(
-            Level.INFO, "Finished processing file, deleting: {0}", this.checkpoint.currentFile());
-        currentFile.close();
-        this.checkpoint.currentFile().delete();
-        File nextFile = this.checkpoint.nextFile();
+            Level.INFO, "Finished processing file, deleting: {0}", currentKey);
+        currentReader.close();
+        // Delete the processed object from S3
+        try {
+          s3Client.deleteObject(
+              req -> req.bucket(bucketName).key(currentKey));
+        } catch (SdkException e) {
+          logger.log(Level.WARNING, "Failed to delete processed file from S3: " + currentKey, e);
+        }
+        String nextKey = this.checkpoint.nextFile();
 
-        if (nextFile == null) {
+        if (nextKey == null) {
           logger.log(Level.INFO, "No more files to process");
+          currentReader = null;
+          currentKey = null;
           return null;
         } else {
-          currentFile = new RandomAccessFile(nextFile, "r");
-          logger.log(Level.INFO, "Processing file: {0}", nextFile);
+          currentKey = nextKey;
+          logger.log(Level.INFO, "Processing file: {0}", nextKey);
+          GetObjectRequest getRequest =
+              GetObjectRequest.builder().bucket(bucketName).key(nextKey).build();
+          currentReader =
+              new BufferedReader(
+                  new InputStreamReader(
+                      s3Client.getObjectAsBytes(getRequest).asInputStream(),
+                      StandardCharsets.UTF_8));
           return readItem();
         }
       }
