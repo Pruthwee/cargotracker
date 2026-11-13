@@ -72,13 +72,7 @@
       <version>14.0.5</version>
       <classifier>jakarta</classifier>
     </dependency>
-    <!-- We need a Jersey specific dependency for property name constants -->
-    <dependency>
-      <groupId>org.glassfish.jersey.core</groupId>
-      <artifactId>jersey-server</artifactId>
-      <version>3.1.10</version>
-      <scope>provided</scope>
-    </dependency>    
+    
     <!-- Test dependencies -->
     <dependency>
       <groupId>org.junit.jupiter</groupId>
@@ -130,6 +124,14 @@
         <version>3.4.0</version>
         <configuration>
           <filteringDeploymentDescriptors>true</filteringDeploymentDescriptors>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.11.0</version>
+        <configuration>
+          <release>11</release>
         </configuration>
       </plugin>
     </plugins>
@@ -327,9 +329,10 @@
       <properties>
         <webapp.graphTraversalUrl>http://localhost:8080/rest/graph-traversal/shortest-path</webapp.graphTraversalUrl>
         <db.driverClass>org.postgresql.ds.PGPoolingDataSource</db.driverClass>
-        <!-- Pass in via command line. For example:
-             ./mvnw clean package -Pcloud 
-                                  -DpostgreSqlJdbcUrl="jdbc:postgresql://host.docker.internal:5432/postgres" 
+        <!-- Database connection details are provided via environment variables at runtime.
+             For local development, pass them via command line, e.g.:
+             ./mvnw clean package -Pcloud
+                                  -DpostgreSqlJdbcUrl="jdbc:postgresql://host.docker.internal:5432/postgres"
                                   -DpostgreSqlUsername="postgres" -DpostgreSqlPassword="postgres"
         -->
         <!--suppress UnresolvedMavenProperty -->

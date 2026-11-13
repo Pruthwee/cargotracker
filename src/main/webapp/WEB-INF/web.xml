@@ -57,16 +57,16 @@
   <env-entry>
     <env-entry-name>java:app/configuration/GraphTraversalUrl</env-entry-name>
     <env-entry-type>java.lang.String</env-entry-type>
-    <env-entry-value>${webapp.graphTraversalUrl}</env-entry-value>
+    <env-entry-value>${ENV=GRAPH_TRAVERSAL_URL}</env-entry-value>
   </env-entry>
   <!-- Defining these at the application server level instead of here can be more 
     operations friendly and help make deployment even faster. -->
   <data-source>
     <name>java:app/jdbc/CargoTrackerDatabase</name>
-    <class-name>${db.driverClass}</class-name>
-    <url>${db.jdbcUrl}</url>
-    <user>${db.user}</user>
-    <password>${db.password}</password>
+    <class-name>${ENV=DB_DRIVER_CLASS}</class-name>
+    <url>${ENV=DB_JDBC_URL}</url>
+    <user>${ENV=DB_USER}</user>
+    <password>${ENV=DB_PASSWORD}</password>
     <max-pool-size>32</max-pool-size>
     <min-pool-size>2</min-pool-size>
   </data-source>
