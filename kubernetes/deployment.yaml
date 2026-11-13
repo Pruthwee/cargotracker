@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cargo-tracker
+  namespace: "{{NAMESPACE}}"
+  labels:
+    app: cargo-tracker
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cargo-tracker
+  template:
+    metadata:
+      labels:
+        app: cargo-tracker
+    spec:
+      containers:
+      - name: cargo-tracker
+        image: "{{IMAGE_URI}}"
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        env:
+        - name: DB_DRIVER_CLASS
+          value: "org.postgresql.ds.PGPoolingDataSource"
+        - name: DB_JDBC_URL
+          value: "{{DB_JDBC_URL}}"
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: cargo-tracker-secrets
+              key: db-user
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: cargo-tracker-secrets
+              key: db-password
+        - name: GRAPH_TRAVERSAL_URL
+          value: "{{GRAPH_TRAVERSAL_URL}}"
+        - name: JAVA_OPTS
+          value: "-Xmx512m -Xms256m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
+        resources:
+          requests:
+            cpu: "250m"
+            memory: "512Mi"
+          limits:
+            cpu: "500m"
+            memory: "1Gi"
+        livenessProbe:
+          httpGet:
+            path: /rest/health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /rest/health
+            port: 8080
+          initialDelaySeconds: 20
+          periodSeconds: 10
