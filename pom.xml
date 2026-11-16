@@ -23,7 +23,7 @@
     <url>https://github.com/eclipse-ee4j/cargotracker/issues</url>
   </issueManagement>
   <properties>
-    <maven.compiler.release>11</maven.compiler.release>
+    <maven.compiler.release>25</maven.compiler.release>
     <jakartaee.api.version>10.0.0</jakartaee.api.version>
     <surefire.version>3.5.2</surefire.version>
     <dependency.plugin.version>3.8.1</dependency.plugin.version>
@@ -124,6 +124,14 @@
   <build>
     <finalName>cargo-tracker</finalName>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.13.0</version>
+        <configuration>
+          <release>25</release>
+        </configuration>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>
